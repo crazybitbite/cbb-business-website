@@ -205,7 +205,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
                     {formData.slug && isValidSlug(formData.slug) && (
                         <div className="flex items-center gap-2 text-sm text-gray-400">
                             <ExternalLink className="h-4 w-4" />
-                            <span>Preview: <span className="text-orange-400">http://localhost:3000/{formData.slug}</span></span>
+                            <span>Preview: <span className="text-orange-400">{process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/{formData.slug}</span></span>
                         </div>
                     )}
                 </div>
@@ -220,11 +220,11 @@ export default function EditPage({ params }: { params: { id: string } }) {
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-300">Category<span className="text-red-500">*</span></label>
+                    <label className="text-sm font-medium text-gray-300">Category <span className="text-gray-500 text-xs">(optional)</span></label>
                     <CategoryDropdown
                         value={formData.category}
                         onChange={(id) => setFormData({ ...formData, category: id })}
-                        placeholder="Search and select category..."
+                        placeholder="No category — page is served at its slug from the root URL"
                     />
                 </div>
                 <div className="space-y-2">

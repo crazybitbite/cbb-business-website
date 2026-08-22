@@ -1,11 +1,19 @@
 export async function register() {
     if (process.env.NEXT_RUNTIME === 'nodejs') {
+        // On Vercel there is no long-lived process: in-process cron never fires
+        // reliably, and running this on every lambda cold start just burns DB
+        // connections. Scheduled work runs via Vercel Cron instead (vercel.json
+        // → /api/cron/currency-rates and /api/cron/verify-subscriptions).
+        if (process.env.VERCEL) {
+            console.log("Serverless environment detected: skipping in-process scheduler (Vercel Cron handles scheduled jobs)")
+            return
+        }
+
         const { schedule } = await import('node-cron')
-        const { prisma } = await import('./lib/prisma')
-        const { verifyAndSaveSubscription } = await import('./lib/subscriptionVerification')
+        const { verifyAllUserSubscriptions } = await import('./lib/subscriptionVerification')
         const { fetchAndStoreCurrencyRates, getCurrencyRates } = await import('./lib/currencyRates')
 
-        console.log("Scheduler registered: Daily verification at 8 PM IST")
+        console.log("Scheduler registered: rates every 8h, subscription checks daily")
 
         // Currency rates: refresh three times a day (every 8 hours)
         schedule('0 */8 * * *', async () => {
@@ -21,28 +29,11 @@ export async function register() {
             }
         }).catch(e => console.error("[Scheduler] Initial rates fetch failed", e))
 
-        // 8 PM IST = 14:30 UTC
-        // Cron format: Minute Hour Day Month DayOfWeek
+        // Daily subscription re-verification
         schedule('04 09 * * *', async () => {
-            console.log(`[Scheduler] Running daily checks at ${new Date().toISOString()}`)
+            console.log(`[Scheduler] Running daily subscription checks at ${new Date().toISOString()}`)
             try {
-                const subs = await prisma.userSubscription.findMany()
-                console.log(`[Scheduler] Checking ${subs.length} users...`)
-
-                for (const sub of subs) {
-                    const userId = sub.userId
-                    const subscriptionData = sub.subscription as Record<string, any>
-
-                    if (subscriptionData && typeof subscriptionData === 'object') {
-                        // Check every platform the user has in their subscription object
-                        const platforms = Object.keys(subscriptionData)
-                        console.log(`[Scheduler] User ${userId}: checking platforms [${platforms.join(', ')}]`)
-
-                        for (const platform of platforms) {
-                            await verifyAndSaveSubscription(userId, platform)
-                        }
-                    }
-                }
+                await verifyAllUserSubscriptions()
             } catch (e) {
                 console.error("[Scheduler] Error", e)
             }

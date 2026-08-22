@@ -400,3 +400,23 @@ export async function verifyAndSaveSubscription(userId: number, platform: string
         return false
     }
 }
+
+/**
+ * Re-verify every platform for every user with a stored subscription record.
+ * Used by the daily scheduler (self-hosted) and the Vercel cron endpoint.
+ */
+export async function verifyAllUserSubscriptions(): Promise<{ users: number }> {
+    const subs = await prisma.userSubscription.findMany()
+    console.log(`[SubscriptionCheck] Checking ${subs.length} users...`)
+
+    for (const sub of subs) {
+        const subscriptionData = sub.subscription as Record<string, any>
+        if (subscriptionData && typeof subscriptionData === "object") {
+            for (const platform of Object.keys(subscriptionData)) {
+                await verifyAndSaveSubscription(sub.userId, platform)
+            }
+        }
+    }
+
+    return { users: subs.length }
+}

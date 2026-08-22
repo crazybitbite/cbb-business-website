@@ -133,12 +133,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             if (token.sub) {
                 const uid = parseInt(token.sub, 10)
                 if (!isNaN(uid)) {
-                    const user = await prisma.user.findUnique({
-                        where: { id: uid },
-                        select: { role: true },
-                    })
-                    if (user) {
-                        token.role = user.role
+                    // A transient DB failure must not 500 the whole auth route —
+                    // the token just keeps its previous role until the next refresh.
+                    try {
+                        const user = await prisma.user.findUnique({
+                            where: { id: uid },
+                            select: { role: true },
+                        })
+                        if (user) {
+                            token.role = user.role
+                        }
+                    } catch (error) {
+                        console.error("JWT role lookup failed:", error)
                     }
                 }
             }

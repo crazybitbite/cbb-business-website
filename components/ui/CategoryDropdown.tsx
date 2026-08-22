@@ -186,6 +186,17 @@ export function CategoryDropdown({
           </div>
 
           <div className="overflow-y-auto flex-1">
+            <button
+              type="button"
+              onClick={() => {
+                onChange("")
+                setIsOpen(false)
+                setSearchTerm("")
+              }}
+              className={`w-full text-left px-4 py-3 hover:bg-white/10 transition-colors border-b border-white/5 text-sm italic ${!value ? "bg-orange-600/20 text-white" : "text-gray-400"}`}
+            >
+              No category
+            </button>
             {filteredOptions.length === 0 ? (
               <div className="px-4 py-8 text-center text-gray-400 text-sm">
                 No categories found
