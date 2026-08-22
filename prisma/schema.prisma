@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+  isActive      Boolean   @default(true)
+  createdAt     BigInt    @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  updatedAt     BigInt?   @db.BigInt
+
+  accounts      Account[]
+  sessions      Session[]
+  orders        Order[]
+  userSubscription UserSubscription?
+  blogPosts     BlogPost[]
+}
+
+model UserSubscription {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Json
+  createdAt    BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  updatedAt    BigInt?  @db.BigInt
+}
+
+model Account {
+  id                Int      @id @default(autoincrement())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+ 
+  createdAt BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  updatedAt BigInt?  @db.BigInt
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@id([identifier, token])
+}
+
+
+
+model Page {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  slug               String   @unique @default("")
+  description        String
+  shortDescription   String?
+  price              Float?
+  currency           String   @default("USD")
+  featuredImages     String[]
+  bannerImages       String[]
+  category           String   @default("General")
+  featured           Boolean  @default(false)
+  isPublished        Boolean  @default(false)
+  showcase           Boolean  @default(false)
+  showcaseOrder      Int?
+  downloadable       Boolean  @default(false)
+  downloadPlatforms  String[] @default([])
+  modelUrl           String?
+  sideContent        Json?
+  cta                Json?
+  createdAt          BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  updatedAt          BigInt?  @db.BigInt
+  orderItems         OrderItem[]
+}
+
+model Order {
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  user          User        @relation(fields: [userId], references: [id])
+  status        String      @default("PENDING")
+  total         Float
+  currency      String      @default("USD")
+  stripeSessionId String?
+  createdAt     BigInt      @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  updatedAt     BigInt?     @db.BigInt
+  items         OrderItem[]
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id])
+  pageId    Int?
+  page      Page?    @relation(fields: [pageId], references: [id])
+  // Service relation removed
+  quantity  Int
+  price     Float
+}
+
+model Category {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String
+  subCategories SubCategory[]
+  order       Int         @default(0)
+  sideContent Json?
+  createdAt   BigInt      @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  updatedAt   BigInt?     @db.BigInt
+}
+
+model SubCategory {
+  id                Int           @id @default(autoincrement())
+  name              String
+  description       String
+  categoryId        Int
+  category          Category      @relation(fields: [categoryId], references: [id])
+  parentSubCategoryId Int?
+  parentSubCategory SubCategory?  @relation("SubCategoryChildren", fields: [parentSubCategoryId], references: [id])
+  children          SubCategory[] @relation("SubCategoryChildren")
+  order             Int           @default(0)
+  createdAt         BigInt        @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  updatedAt         BigInt?       @db.BigInt
+}
+
+model Settings {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     Json
+  createdAt BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  updatedAt BigInt?  @db.BigInt
+}
+
+model BlogPost {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  published Boolean  @default(false)
+  slug      String   @unique
+  shortDescription String?
+  category  String   @default("General")
+  featured  Boolean  @default(false)
+  featuredImages String[]
+  bannerImages   String[]
+  authorId  Int?
+  author    User?    @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  link        String?
+  technologies String[]
+  category    String   @default("General")
+  featured    Boolean  @default(false)
+  featuredImages String[]
+  bannerImages   String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  images      String[]
+  fileUrl     String?
+  category    String   @default("Assets")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  shortDescription String?
+  price       Float?
+  features    String[]
+  icon        String?
+  category    String   @default("General")
+  featured    Boolean  @default(false)
+  featuredImages String[]
+  bannerImages   String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
