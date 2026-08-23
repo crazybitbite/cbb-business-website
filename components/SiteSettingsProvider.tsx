@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import {
     COUNTRY_TO_CURRENCY,
+    TIMEZONE_TO_COUNTRY,
     CURRENCY_CODES,
     convertPrice,
     formatPrice,
@@ -49,7 +50,22 @@ const SiteSettingsContext = createContext<SiteSettingsContextValue>({
     setSuppressGlobalRails: () => { },
 })
 
-function currencyFromBrowserLocale(): string | null {
+/**
+ * Best browser-side location guess: the machine's timezone first (actual
+ * location), then locale region (language setting — a weak signal, e.g. an
+ * en-GB browser in India). The IP lookup overrides both when it resolves.
+ */
+function currencyFromBrowser(): string | null {
+    try {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+        const country = timezone ? TIMEZONE_TO_COUNTRY[timezone] : undefined
+        if (country && COUNTRY_TO_CURRENCY[country]) {
+            return COUNTRY_TO_CURRENCY[country]
+        }
+    } catch {
+        // fall through to locale
+    }
+
     try {
         const locales = [...(navigator.languages || []), navigator.language]
         for (const locale of locales) {
@@ -86,10 +102,10 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
             .catch(() => { })
             .finally(() => setIsLoaded(true))
 
-        // Browser locale gives an instant provisional guess, but it reflects
-        // language, not location — the IP lookup corrects it when it resolves.
-        const fromLocale = currencyFromBrowserLocale()
-        if (fromLocale) setGeoCurrency(fromLocale)
+        // Timezone/locale give an instant provisional guess;
+        // the IP lookup corrects it when it resolves.
+        const fromBrowser = currencyFromBrowser()
+        if (fromBrowser) setGeoCurrency(fromBrowser)
         fetch("/api/geo")
             .then((res) => (res.ok ? res.json() : null))
             .then((data) => {

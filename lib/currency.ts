@@ -48,6 +48,38 @@ export const COUNTRY_TO_CURRENCY: Record<string, string> = {
     SI: "EUR", SK: "EUR",
 }
 
+// IANA timezone → country, for the countries whose currencies we support.
+// The browser's timezone reflects the machine's actual location far better
+// than its language setting does.
+export const TIMEZONE_TO_COUNTRY: Record<string, string> = {
+    "Asia/Kolkata": "IN", "Asia/Calcutta": "IN",
+    "Europe/London": "GB",
+    "Asia/Tokyo": "JP",
+    "Asia/Shanghai": "CN", "Asia/Chongqing": "CN", "Asia/Urumqi": "CN",
+    "Asia/Singapore": "SG",
+    "Asia/Dubai": "AE",
+    "Asia/Hong_Kong": "HK",
+    "Asia/Seoul": "KR",
+    "Asia/Bangkok": "TH",
+    "Europe/Zurich": "CH",
+    "Europe/Stockholm": "SE",
+    "Europe/Oslo": "NO",
+    "Pacific/Auckland": "NZ",
+    "Africa/Johannesburg": "ZA",
+    "America/Sao_Paulo": "BR", "America/Bahia": "BR", "America/Fortaleza": "BR", "America/Manaus": "BR",
+    "America/Mexico_City": "MX", "America/Tijuana": "MX", "America/Monterrey": "MX", "America/Cancun": "MX",
+    "America/New_York": "US", "America/Chicago": "US", "America/Denver": "US", "America/Los_Angeles": "US",
+    "America/Phoenix": "US", "America/Detroit": "US", "America/Anchorage": "US", "Pacific/Honolulu": "US",
+    "America/Toronto": "CA", "America/Vancouver": "CA", "America/Edmonton": "CA", "America/Winnipeg": "CA", "America/Halifax": "CA", "America/Montreal": "CA",
+    "Australia/Sydney": "AU", "Australia/Melbourne": "AU", "Australia/Brisbane": "AU", "Australia/Perth": "AU", "Australia/Adelaide": "AU", "Australia/Hobart": "AU", "Australia/Darwin": "AU",
+    // Eurozone
+    "Europe/Berlin": "DE", "Europe/Paris": "FR", "Europe/Madrid": "ES", "Europe/Rome": "IT",
+    "Europe/Amsterdam": "NL", "Europe/Brussels": "BE", "Europe/Vienna": "AT", "Europe/Lisbon": "PT",
+    "Europe/Dublin": "IE", "Europe/Helsinki": "FI", "Europe/Athens": "GR", "Europe/Luxembourg": "LU",
+    "Europe/Bratislava": "SK", "Europe/Ljubljana": "SI", "Europe/Tallinn": "EE", "Europe/Riga": "LV",
+    "Europe/Vilnius": "LT", "Europe/Zagreb": "HR", "Europe/Malta": "MT", "Europe/Nicosia": "CY",
+}
+
 export interface CurrencyRates {
     base: string // always "USD"
     rates: Record<string, number> // 1 USD = rates[code] of that currency
