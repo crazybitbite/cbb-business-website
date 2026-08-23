@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getStripe } from "@/lib/stripe"
 
+// Reads session_id from the query string — must never be statically prerendered
+export const dynamic = "force-dynamic"
+
 /**
  * Stripe success_url callback: verify the checkout session was actually paid,
  * mark the order completed, and send the user to their order page.
