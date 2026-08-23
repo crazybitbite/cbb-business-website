@@ -28,8 +28,10 @@ interface PublicSettings {
 interface SiteSettingsContextValue {
     settings: PublicSettings
     isLoaded: boolean
-    /** Currency prices are displayed in, resolved from browser locale → IP → site default */
+    /** Currency prices are displayed in: visitor's saved choice → browser locale → IP → site default */
     displayCurrency: string
+    /** Let the visitor pick a display currency; persisted in localStorage */
+    setDisplayCurrency: (code: string) => void
     /** Format a stored (amount, currency) pair in the visitor's display currency when rates allow */
     displayPrice: (amount: number, fromCurrency: string) => string
     /** True while a dynamic page renders its own (already resolved) side rails */
@@ -41,6 +43,7 @@ const SiteSettingsContext = createContext<SiteSettingsContextValue>({
     settings: {},
     isLoaded: false,
     displayCurrency: "USD",
+    setDisplayCurrency: () => { },
     displayPrice: (amount, from) => formatPrice(amount, from),
     suppressGlobalRails: false,
     setSuppressGlobalRails: () => { },
@@ -66,7 +69,15 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
     const [settings, setSettings] = useState<PublicSettings>({})
     const [isLoaded, setIsLoaded] = useState(false)
     const [geoCurrency, setGeoCurrency] = useState<string | null>(null)
+    const [currencyOverride, setCurrencyOverride] = useState<string | null>(null)
     const [suppressGlobalRails, setSuppressGlobalRails] = useState(false)
+
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem("displayCurrency")
+            if (saved && CURRENCY_CODES.includes(saved)) setCurrencyOverride(saved)
+        } catch { }
+    }, [])
 
     useEffect(() => {
         fetch("/api/settings/public")
@@ -75,24 +86,31 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
             .catch(() => { })
             .finally(() => setIsLoaded(true))
 
+        // Browser locale gives an instant provisional guess, but it reflects
+        // language, not location — the IP lookup corrects it when it resolves.
         const fromLocale = currencyFromBrowserLocale()
-        if (fromLocale) {
-            setGeoCurrency(fromLocale)
-        } else {
-            fetch("/api/geo")
-                .then((res) => (res.ok ? res.json() : null))
-                .then((data) => {
-                    if (data?.currency) setGeoCurrency(data.currency)
-                })
-                .catch(() => { })
-        }
+        if (fromLocale) setGeoCurrency(fromLocale)
+        fetch("/api/geo")
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+                if (data?.currency) setGeoCurrency(data.currency)
+            })
+            .catch(() => { })
     }, [])
 
     const defaultCurrency =
         settings.defaultCurrency && CURRENCY_CODES.includes(settings.defaultCurrency)
             ? settings.defaultCurrency
             : "USD"
-    const displayCurrency = geoCurrency || defaultCurrency
+    const displayCurrency = currencyOverride || geoCurrency || defaultCurrency
+
+    const setDisplayCurrency = useCallback((code: string) => {
+        if (!CURRENCY_CODES.includes(code)) return
+        setCurrencyOverride(code)
+        try {
+            localStorage.setItem("displayCurrency", code)
+        } catch { }
+    }, [])
 
     const displayPrice = useCallback(
         (amount: number, fromCurrency: string) => {
@@ -105,7 +123,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
     )
 
     return (
-        <SiteSettingsContext.Provider value={{ settings, isLoaded, displayCurrency, displayPrice, suppressGlobalRails, setSuppressGlobalRails }}>
+        <SiteSettingsContext.Provider value={{ settings, isLoaded, displayCurrency, setDisplayCurrency, displayPrice, suppressGlobalRails, setSuppressGlobalRails }}>
             {children}
         </SiteSettingsContext.Provider>
     )

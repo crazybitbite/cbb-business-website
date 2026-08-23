@@ -137,6 +137,17 @@ export default function EditPage({ params }: { params: { id: string } }) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // Downloadable pages must actually have something to download
+        const hasDownloadSource =
+            !!formData.modelUrl.trim() ||
+            !!formData.downloadFileData ||
+            (!!existingFile && !formData.removeDownloadFile)
+        if (formData.downloadable && !hasDownloadSource) {
+            alert("Downloadable is enabled — please upload a file or enter a download URL before saving.")
+            return
+        }
+
         setIsSubmitting(true)
 
         try {

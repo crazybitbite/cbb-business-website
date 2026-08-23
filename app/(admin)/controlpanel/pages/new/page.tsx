@@ -96,6 +96,13 @@ export default function NewPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // Downloadable pages must actually have something to download
+        if (formData.downloadable && !formData.modelUrl.trim() && !formData.downloadFileData) {
+            alert("Downloadable is enabled — please upload a file or enter a download URL before saving.")
+            return
+        }
+
         setIsSubmitting(true)
 
         try {
