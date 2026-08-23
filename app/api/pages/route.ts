@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { isValidSlug } from "@/lib/slugify"
+import { storeDownloadFile } from "@/lib/downloadFileStorage"
 
 export async function GET(req: Request) {
     try {
@@ -37,8 +38,19 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Slug already exists" }, { status: 400 })
         }
 
+        // Optional uploaded download file (base64 data URL from the admin form)
+        let downloadFileId: number | undefined = undefined
+        if (typeof json.downloadFileData === "string" && json.downloadFileData.startsWith("data:")) {
+            const newFileId = await storeDownloadFile(json.downloadFileData, json.downloadFileName)
+            if (!newFileId) {
+                return NextResponse.json({ error: "Invalid or too large download file (max 3 MB)" }, { status: 400 })
+            }
+            downloadFileId = newFileId
+        }
+
         const page = await prisma.page.create({
             data: {
+                downloadFileId,
                 name: json.name,
                 slug: json.slug,
                 description: json.description,

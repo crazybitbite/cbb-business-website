@@ -101,11 +101,25 @@ model Page {
   downloadable       Boolean  @default(false)
   downloadPlatforms  String[] @default([])
   modelUrl           String?
+  downloadFileId     Int?     @unique
+  downloadFile       DownloadFile? @relation(fields: [downloadFileId], references: [id])
   sideContent        Json?
   cta                Json?
   createdAt          BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
   updatedAt          BigInt?  @db.BigInt
   orderItems         OrderItem[]
+}
+
+// Uploaded download files live in the database so they are never publicly
+// served — delivery goes through the gated /api/pages/[id]/download/file route.
+model DownloadFile {
+  id        Int    @id @default(autoincrement())
+  fileName  String
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  page      Page?
 }
 
 model Order {

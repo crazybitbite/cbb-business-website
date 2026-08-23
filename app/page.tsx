@@ -127,7 +127,7 @@ export default function Home() {
       </section>
 
       {/* Pages Section */}
-      <section id="pages" className="py-24 bg-white dark:bg-transparent">
+      {/* <section id="pages" className="py-24 bg-white dark:bg-transparent">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl mb-4">Pages</h2>
@@ -153,7 +153,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Blog Section */}
       <section id="blog" className="py-24 bg-gray-50/50 dark:bg-black/50 backdrop-blur-sm">

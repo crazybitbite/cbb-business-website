@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { isValidSlug } from "@/lib/slugify"
+import { storeDownloadFile, deleteDownloadFile } from "@/lib/downloadFileStorage"
 
 export async function GET(
     req: Request,
@@ -10,6 +11,8 @@ export async function GET(
     try {
         const page = await prisma.page.findUnique({
             where: { id: parseInt(params.id) },
+            // File metadata only — the binary is served by the gated download route
+            include: { downloadFile: { select: { fileName: true, size: true } } },
         })
 
         if (!page) {
@@ -51,9 +54,31 @@ export async function PUT(
             }
         }
 
+        // Download file handling: a new upload replaces any existing file;
+        // removeDownloadFile detaches and deletes the stored one.
+        const existing = await prisma.page.findUnique({
+            where: { id: pageId },
+            select: { downloadFileId: true },
+        })
+        let downloadFileId: number | null | undefined = undefined
+        let staleFileId: number | null = null
+
+        if (typeof json.downloadFileData === "string" && json.downloadFileData.startsWith("data:")) {
+            const newFileId = await storeDownloadFile(json.downloadFileData, json.downloadFileName)
+            if (!newFileId) {
+                return NextResponse.json({ error: "Invalid or too large download file (max 3 MB)" }, { status: 400 })
+            }
+            downloadFileId = newFileId
+            staleFileId = existing?.downloadFileId ?? null
+        } else if (json.removeDownloadFile) {
+            downloadFileId = null
+            staleFileId = existing?.downloadFileId ?? null
+        }
+
         const page = await prisma.page.update({
             where: { id: pageId },
             data: {
+                downloadFileId,
                 name: json.name,
                 slug: json.slug,
                 description: json.description,
@@ -74,6 +99,9 @@ export async function PUT(
                 bannerImages: json.bannerImages || [],
             },
         })
+
+        // Only after the page no longer references it
+        await deleteDownloadFile(staleFileId)
 
         return NextResponse.json(page)
     } catch (error) {

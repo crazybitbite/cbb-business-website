@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Save, Loader2, Upload, X, ExternalLink } from "lucide-react"
+import { ArrowLeft, Save, Loader2, Upload, X, ExternalLink, FileUp } from "lucide-react"
 import Link from "next/link"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
 import { CategoryDropdown } from "@/components/ui/CategoryDropdown"
@@ -23,6 +23,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+    const [existingFile, setExistingFile] = useState<{ fileName: string; size: number } | null>(null)
     const [formData, setFormData] = useState({
         name: "",
         slug: "",
@@ -40,6 +41,9 @@ export default function EditPage({ params }: { params: { id: string } }) {
         downloadable: false,
         downloadPlatforms: [] as string[],
         modelUrl: "",
+        downloadFileData: "",
+        downloadFileName: "",
+        removeDownloadFile: false,
         ctaEnabled: false,
         ctaTitle: "",
         ctaDescription: "",
@@ -72,6 +76,9 @@ export default function EditPage({ params }: { params: { id: string } }) {
                         downloadable: !!pageData.downloadable,
                         downloadPlatforms: pageData.downloadPlatforms || [],
                         modelUrl: pageData.modelUrl || "",
+                        downloadFileData: "",
+                        downloadFileName: "",
+                        removeDownloadFile: false,
                         ctaEnabled: !!pageData.cta?.enabled,
                         ctaTitle: pageData.cta?.title || "",
                         ctaDescription: pageData.cta?.description || "",
@@ -79,6 +86,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
                         ctaButtonUrl: pageData.cta?.buttonUrl || "",
                         sideContent: normalizeSideContent(pageData.sideContent),
                     })
+                    setExistingFile(pageData.downloadFile || null)
                 }
             } catch (error) {
                 console.error("Failed to fetch page")
@@ -414,12 +422,73 @@ export default function EditPage({ params }: { params: { id: string } }) {
                                 ))}
                             </div>
                             <div className="space-y-2 pt-2">
-                                <label className="text-sm font-medium text-gray-300">Download File URL</label>
+                                <label className="text-sm font-medium text-gray-300">Download File</label>
+                                <p className="text-xs text-gray-500">
+                                    Upload a file (max 3 MB) or paste a URL below. Uploaded files are stored privately and only
+                                    served after the purchase / subscription checks pass — the link cannot be used directly.
+                                    If both are set, the uploaded file is used.
+                                </p>
+                                {formData.downloadFileData ? (
+                                    <div className="flex items-center justify-between rounded-lg bg-white/10 px-3 py-2">
+                                        <span className="flex items-center gap-2 text-sm text-white truncate">
+                                            <FileUp className="h-4 w-4 text-orange-400 flex-shrink-0" />
+                                            {formData.downloadFileName} <span className="text-gray-400">(new upload)</span>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, downloadFileData: "", downloadFileName: "" })}
+                                            className="p-1 text-red-400 hover:text-red-300 flex-shrink-0"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ) : existingFile && !formData.removeDownloadFile ? (
+                                    <div className="flex items-center justify-between rounded-lg bg-white/10 px-3 py-2">
+                                        <span className="flex items-center gap-2 text-sm text-white truncate">
+                                            <FileUp className="h-4 w-4 text-green-400 flex-shrink-0" />
+                                            {existingFile.fileName} <span className="text-gray-400">({Math.ceil(existingFile.size / 1024)} KB)</span>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, removeDownloadFile: true })}
+                                            className="p-1 text-red-400 hover:text-red-300 flex-shrink-0"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label className="flex items-center justify-center gap-2 w-full rounded-lg border border-dashed border-white/20 py-3 text-sm text-gray-400 cursor-pointer hover:bg-white/5 transition-colors">
+                                        <FileUp className="h-4 w-4" /> Click to upload file
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0]
+                                                if (!file) return
+                                                if (file.size > 3 * 1024 * 1024) {
+                                                    alert("File is too large — maximum size is 3 MB.")
+                                                    return
+                                                }
+                                                const reader = new FileReader()
+                                                reader.onload = (ev) => setFormData(prev => ({
+                                                    ...prev,
+                                                    downloadFileData: ev.target?.result as string,
+                                                    downloadFileName: file.name,
+                                                    removeDownloadFile: false,
+                                                }))
+                                                reader.readAsDataURL(file)
+                                            }}
+                                        />
+                                    </label>
+                                )}
+                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    <div className="flex-1 border-t border-white/10" /> or <div className="flex-1 border-t border-white/10" />
+                                </div>
                                 <input
                                     type="text"
                                     value={formData.modelUrl}
                                     onChange={(e) => setFormData({ ...formData, modelUrl: e.target.value })}
-                                    placeholder="https://... (optional)"
+                                    placeholder="Download URL, e.g. https://... (optional)"
                                     className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
                                 />
                             </div>

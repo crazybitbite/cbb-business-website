@@ -153,8 +153,6 @@ export function Navbar() {
         { name: "Home", href: "/", isEnabled: true },
         { name: "About", href: "/about", isEnabled: true },
         { name: "Services", href: "/services", isEnabled: true, submenu: [] },
-        { name: "Pages", href: "/pages", isEnabled: true },
-        { name: "Projects", href: "/projects", isEnabled: true },
         { name: "Blog", href: "/blog", isEnabled: true },
         { name: "Contact", href: "/contact", isEnabled: true },
     ]
