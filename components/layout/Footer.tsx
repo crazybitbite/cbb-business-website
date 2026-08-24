@@ -7,10 +7,10 @@ import { BrandLogo } from "@/components/layout/Navbar"
 
 export function Footer({ initialNavigation }: { initialNavigation?: { name: string; href: string }[] | null }) {
     const defaultLinks = [
-        { name: "About Us", href: "/about" },
+        { name: "About Us", href: "/about-us" },
         { name: "Services", href: "/services" },
-        { name: "Pages", href: "/pages" },
-        { name: "Projects", href: "/projects" },
+        { name: "Digital Products", href: "/digital-products" },
+        { name: "Blog", href: "/blog" },
     ]
 
     const [navigation, setNavigation] = useState(initialNavigation?.length ? initialNavigation : defaultLinks)
@@ -87,9 +87,8 @@ export function Footer({ initialNavigation }: { initialNavigation?: { name: stri
                     <div>
                         <h3 className="mb-4 text-lg font-semibold text-white">Legal</h3>
                         <ul className="space-y-2 text-sm">
-                            <li><Link href="/privacy" className="hover:text-orange-500">Privacy Policy</Link></li>
-                            <li><Link href="/terms" className="hover:text-orange-500">Terms of Service</Link></li>
-                            <li><Link href="/cookies" className="hover:text-orange-500">Cookie Policy</Link></li>
+                            <li><Link href="/privacy-policy" className="hover:text-orange-500">Privacy Policy</Link></li>
+                            <li><Link href="/terms-condition" className="hover:text-orange-500">Terms of Service</Link></li>
                         </ul>
                     </div>
 
@@ -97,10 +96,10 @@ export function Footer({ initialNavigation }: { initialNavigation?: { name: stri
                     <div>
                         <h3 className="mb-4 text-lg font-semibold text-white">Connect</h3>
                         <div className="flex space-x-4">
-                            <a href="#" className="hover:text-orange-500"><Facebook className="h-5 w-5" /></a>
-                            <a href="#" className="hover:text-orange-500"><Twitter className="h-5 w-5" /></a>
-                            <a href="#" className="hover:text-orange-500"><Instagram className="h-5 w-5" /></a>
-                            <a href="#" className="hover:text-orange-500"><Linkedin className="h-5 w-5" /></a>
+                            <a href="https://www.facebook.com/crazybitbite" className="hover:text-orange-500"><Facebook className="h-5 w-5" /></a>
+                            <a href="https://twitter.com/crazybitbite" className="hover:text-orange-500"><Twitter className="h-5 w-5" /></a>
+                            <a href="https://www.instagram.com/crazybitbite" className="hover:text-orange-500"><Instagram className="h-5 w-5" /></a>
+                            <a href="https://www.linkedin.com/company/crazybitbite" className="hover:text-orange-500"><Linkedin className="h-5 w-5" /></a>
                         </div>
                     </div>
                 </div>

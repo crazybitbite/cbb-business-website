@@ -16,10 +16,19 @@ interface CheckoutNote {
     note: string
 }
 
+interface LivePricing {
+    pageId: number
+    original: number
+    final: number
+    percentOff: number
+    currency: string
+}
+
 interface CheckoutInfo {
     methods: ("stripe" | "qr")[]
     conflict: boolean
     notes: CheckoutNote[]
+    pricing: LivePricing[]
     qrCode: string | null
     contactEmail: string | null
 }
@@ -66,9 +75,32 @@ export default function CartPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [JSON.stringify(items.map((i) => i.id))])
 
+    // Live server pricing wins over what was stored when the item was added
+    // to the cart, so admin price/discount changes reflect immediately.
+    const liveFor = (item: { id: number | string; price: number; currency?: string }) => {
+        const live = info?.pricing?.find((p) => p.pageId === Number(item.id))
+        return {
+            original: live?.original ?? item.price,
+            final: live?.final ?? item.price,
+            percentOff: live?.percentOff ?? 0,
+            currency: live?.currency ?? item.currency ?? "USD",
+        }
+    }
+
+    const toDisplay = (amount: number, from: string) => {
+        const converted = convertPrice(amount, from, displayCurrency, settings.currencyRates)
+        return converted ?? amount
+    }
+
     const total = items.reduce((sum, item) => {
-        const converted = convertPrice(item.price, item.currency || "USD", displayCurrency, settings.currencyRates)
-        return sum + (converted ?? item.price) * item.quantity
+        const live = liveFor(item)
+        return sum + toDisplay(live.final, live.currency) * item.quantity
+    }, 0)
+
+    const totalDiscount = items.reduce((sum, item) => {
+        const live = liveFor(item)
+        if (live.final >= live.original) return sum
+        return sum + (toDisplay(live.original, live.currency) - toDisplay(live.final, live.currency)) * item.quantity
     }, 0)
 
     const allNotesAccepted = !info?.notes.length || info.notes.every((n) => acceptedNotes[n.pageId])
@@ -190,7 +222,24 @@ export default function CartPage() {
                                     )}
                                     <div>
                                         <h3 className="font-bold text-white">{item.name}</h3>
-                                        <p className="text-gray-400">{displayPrice(item.price, item.currency || "USD")}</p>
+                                        {(() => {
+                                            const live = liveFor(item)
+                                            return live.final < live.original ? (
+                                                <p className="flex items-center gap-2 flex-wrap">
+                                                    <span className="text-sm text-gray-500 line-through">
+                                                        {displayPrice(live.original, live.currency)}
+                                                    </span>
+                                                    <span className="animate-pulse rounded-full bg-gradient-to-r from-orange-600 to-pink-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-lg shadow-orange-500/30">
+                                                        {live.percentOff}% OFF
+                                                    </span>
+                                                    <span className="font-medium text-orange-400">
+                                                        {displayPrice(live.final, live.currency)}
+                                                    </span>
+                                                </p>
+                                            ) : (
+                                                <p className="text-gray-400">{displayPrice(live.final, live.currency)}</p>
+                                            )
+                                        })()}
                                     </div>
                                 </div>
                                 <div className="flex items-center space-x-6">
@@ -254,9 +303,15 @@ export default function CartPage() {
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-gray-400">Subtotal</span>
-                                    <span className="text-white">{formatPrice(total, displayCurrency)}</span>
+                                    <span className="text-white">{formatPrice(total + totalDiscount, displayCurrency)}</span>
                                 </div>
-                                <div className="flex justify-between">
+                                {totalDiscount > 0 && (
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Discount</span>
+                                        <span className="font-medium text-green-400">−{formatPrice(totalDiscount, displayCurrency)}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between hidden">
                                     <span className="text-gray-400">Tax</span>
                                     <span className="text-white">{formatPrice(0, displayCurrency)}</span>
                                 </div>

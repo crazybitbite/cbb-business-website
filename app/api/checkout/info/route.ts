@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { cartPaymentMethods } from "@/lib/paymentMethods"
+import { effectivePrice } from "@/lib/pricing"
 
 export const dynamic = "force-dynamic"
 
@@ -21,7 +22,10 @@ export async function POST(req: Request) {
         const [pages, settingsRows] = await Promise.all([
             prisma.page.findMany({
                 where: { id: { in: ids }, isPublished: true },
-                select: { id: true, name: true, paymentMethods: true, checkoutNote: true },
+                select: {
+                    id: true, name: true, paymentMethods: true, checkoutNote: true,
+                    price: true, currency: true, discountAmount: true, discountPercent: true,
+                },
             }),
             prisma.settings.findMany({
                 where: { key: { in: ["defaultPaymentMethod", "paymentQrCode", "contactEmail"] } },
@@ -50,10 +54,26 @@ export async function POST(req: Request) {
             .filter((p) => p.checkoutNote && p.checkoutNote.trim())
             .map((p) => ({ pageId: p.id, name: p.name, note: p.checkoutNote }))
 
+        // Live pricing so the cart never shows stale prices from add-to-cart time
+        const pricing = pages
+            .map((p) => {
+                const ep = effectivePrice(p.price, p.discountAmount, p.discountPercent)
+                if (!ep) return null
+                return {
+                    pageId: p.id,
+                    original: ep.original,
+                    final: ep.final,
+                    percentOff: ep.percentOff,
+                    currency: p.currency || "USD",
+                }
+            })
+            .filter(Boolean)
+
         return NextResponse.json({
             methods: conflict ? [] : effectiveMethods,
             conflict,
             notes,
+            pricing,
             qrCode: !conflict && effectiveMethods.includes("qr") ? settings.paymentQrCode : null,
             contactEmail: settings.contactEmail || null,
         })

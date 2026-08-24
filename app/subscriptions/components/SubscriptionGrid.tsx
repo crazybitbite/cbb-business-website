@@ -9,11 +9,11 @@ interface SubscriptionState {
 
 const PLATFORMS = [
     { id: "youtube", name: "YouTube", icon: Youtube, color: "text-red-600", action: "Subscribe" },
-    { id: "instagram", name: "Instagram", icon: Instagram, color: "text-pink-600", action: "Follow" },
-    { id: "facebook", name: "Facebook", icon: Facebook, color: "text-blue-600", action: "Follow" },
-    { id: "whatsapp", name: "WhatsApp", icon: MessageCircle, color: "text-green-500", action: "Connect" },
-    { id: "linkedin", name: "LinkeIn", icon: Linkedin, color: "text-blue-700", action: "Connect" },
-    { id: "twitter", name: "Twitter", icon: Twitter, color: "text-sky-500", action: "Follow" },
+    // { id: "instagram", name: "Instagram", icon: Instagram, color: "text-pink-600", action: "Follow" },
+    // { id: "facebook", name: "Facebook", icon: Facebook, color: "text-blue-600", action: "Follow" },
+    // { id: "whatsapp", name: "WhatsApp", icon: MessageCircle, color: "text-green-500", action: "Connect" },
+    // { id: "linkedin", name: "LinkeIn", icon: Linkedin, color: "text-blue-700", action: "Connect" },
+    // { id: "twitter", name: "Twitter", icon: Twitter, color: "text-sky-500", action: "Follow" },
 ]
 
 interface SubscriptionGridProps {
