@@ -21,6 +21,13 @@ const EMPTY_SETTINGS = {
     stripeSecretKey: "",
     defaultPaymentMethod: "stripe",
     paymentQrCode: "",
+    defaultSeoTitle: "",
+    defaultSeoDescription: "",
+    defaultSeoKeywords: "",
+    telegram: "",
+    whatsapp: "",
+    telegramQr: "",
+    whatsappQr: "",
 }
 
 type SettingsForm = typeof EMPTY_SETTINGS
@@ -290,6 +297,45 @@ export default function AdminSettings() {
                     <SideContentEditor value={sideContent} onChange={setSideContent} />
                 </div>
 
+                {/* SEO Defaults */}
+                <div className="rounded-xl border border-white/10 bg-black/40 p-6 space-y-6">
+                    <h2 className="text-xl font-semibold text-white">SEO Defaults</h2>
+                    <p className="text-xs text-gray-500">Used for any page that doesn&apos;t define its own SEO fields, and as the site-wide defaults.</p>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">Default SEO Title</label>
+                            <input
+                                type="text"
+                                maxLength={70}
+                                value={settings.defaultSeoTitle}
+                                onChange={(e) => setSettings({ ...settings, defaultSeoTitle: e.target.value })}
+                                placeholder="e.g. CrazyBitBite — Web, AI & Mobile Solutions"
+                                className={inputClass}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">Default Meta Description</label>
+                            <textarea
+                                rows={2}
+                                maxLength={170}
+                                value={settings.defaultSeoDescription}
+                                onChange={(e) => setSettings({ ...settings, defaultSeoDescription: e.target.value })}
+                                className={inputClass}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">Default Keywords</label>
+                            <input
+                                type="text"
+                                value={settings.defaultSeoKeywords}
+                                onChange={(e) => setSettings({ ...settings, defaultSeoKeywords: e.target.value })}
+                                placeholder="comma, separated, keywords"
+                                className={inputClass}
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 {/* Social Media */}
                 <div className="rounded-xl border border-white/10 bg-black/40 p-6 space-y-6">
                     <h2 className="text-xl font-semibold text-white">Social Media</h2>
@@ -330,6 +376,64 @@ export default function AdminSettings() {
                                 className={inputClass}
                             />
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">Telegram Group/Channel Link</label>
+                            <input
+                                type="url"
+                                value={settings.telegram}
+                                onChange={(e) => setSettings({ ...settings, telegram: e.target.value })}
+                                placeholder="https://t.me/..."
+                                className={inputClass}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">WhatsApp Channel Link</label>
+                            <input
+                                type="url"
+                                value={settings.whatsapp}
+                                onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
+                                placeholder="https://whatsapp.com/channel/..."
+                                className={inputClass}
+                            />
+                        </div>
+                        {([
+                            ["telegramQr", "Telegram QR Code"] as const,
+                            ["whatsappQr", "WhatsApp QR Code"] as const,
+                        ]).map(([key, label]) => (
+                            <div key={key} className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">{label} <span className="text-gray-500 text-xs">(optional)</span></label>
+                                {settings[key] ? (
+                                    <div className="flex items-center gap-4">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={settings[key]} alt={`${label} preview`} className="h-20 w-20 object-contain rounded-lg bg-white p-1" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setSettings({ ...settings, [key]: "" })}
+                                            className="flex items-center gap-1 text-sm text-red-400 hover:text-red-300"
+                                        >
+                                            <X className="h-4 w-4" /> Remove
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:bg-white/5 transition-colors">
+                                        <Upload className="h-4 w-4 text-gray-400 mb-1" />
+                                        <p className="text-xs text-gray-400">Upload QR image</p>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0]
+                                                if (!file) return
+                                                const reader = new FileReader()
+                                                reader.onload = (ev) => setSettings(prev => ({ ...prev, [key]: ev.target?.result as string }))
+                                                reader.readAsDataURL(file)
+                                            }}
+                                        />
+                                    </label>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
 

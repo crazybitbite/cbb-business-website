@@ -20,6 +20,10 @@ const PUBLIC_KEYS = [
     "sideContent",
     "defaultPaymentMethod",
     "paymentQrCode",
+    "telegram",
+    "whatsapp",
+    "telegramQr",
+    "whatsappQr",
 ]
 
 export async function GET() {

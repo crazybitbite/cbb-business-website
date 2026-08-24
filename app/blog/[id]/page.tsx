@@ -1,63 +1,41 @@
-"use client"
+import { notFound } from "next/navigation"
+import { PageRenderer } from "@/components/PageRenderer"
+import { getPublishedPageBySlug, getDefaultSeo } from "@/lib/pageData"
 
-import { motion } from "framer-motion"
-import { useParams } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, Calendar, User } from "lucide-react"
+// This route shadows the root catch-all for /blog/<slug> URLs, so it must
+// render the CMS-managed article the same way the catch-all does.
+export const dynamic = "force-dynamic"
 
-export default function BlogPostPage() {
-    const params = useParams()
-    const id = params.id
+export async function generateMetadata({ params }: { params: { id: string } }) {
+    const page = await getPublishedPageBySlug(`blog/${params.id}`)
+    if (!page) {
+        return { title: "Article Not Found" }
+    }
 
-    return (
-        <div className="container mx-auto px-4 py-24">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-4xl mx-auto space-y-8"
-            >
-                <Link href="/blog" className="inline-flex items-center space-x-2 text-gray-400 hover:text-white transition-colors">
-                    <ArrowLeft className="h-4 w-4" />
-                    <span>Back to Blog</span>
-                </Link>
+    const defaults = await getDefaultSeo()
+    const title = page.seoTitle || defaults.title || page.name
+    const description =
+        page.seoDescription ||
+        defaults.description ||
+        page.shortDescription ||
+        page.description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().substring(0, 160)
+    const images = page.featuredImages.length > 0 ? [page.featuredImages[0]] : []
 
-                <div className="space-y-4">
-                    <span className="text-orange-400 font-medium">Tutorials</span>
-                    <h1 className="text-4xl font-bold text-white sm:text-5xl">
-                        Blog Post Title {id}
-                    </h1>
-                    <div className="flex items-center space-x-6 text-gray-400">
-                        <div className="flex items-center space-x-2">
-                            <User className="h-4 w-4" />
-                            <span>Admin User</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>Nov 28, 2025</span>
-                        </div>
-                    </div>
-                </div>
+    return {
+        title,
+        description,
+        keywords: page.seoKeywords || defaults.keywords || undefined,
+        openGraph: { title, description, type: "article", images },
+        twitter: { card: images.length ? "summary_large_image" : "summary", title, description, images },
+    }
+}
 
-                <div className="aspect-video rounded-3xl bg-gray-800 border border-white/10 overflow-hidden flex items-center justify-center text-gray-600">
-                    Featured Image
-                </div>
+export default async function BlogArticlePage({ params }: { params: { id: string } }) {
+    const page = await getPublishedPageBySlug(`blog/${params.id}`)
 
-                <div className="prose prose-invert max-w-none">
-                    <p className="text-xl text-gray-300 leading-relaxed">
-                        This is a placeholder content for blog post {id}. In a real application, this content would be fetched from a database or CMS.
-                    </p>
-                    <h2 className="text-2xl font-bold text-white mt-8 mb-4">Introduction</h2>
-                    <p className="text-gray-400 leading-relaxed">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                    </p>
-                    <h2 className="text-2xl font-bold text-white mt-8 mb-4">Key Concepts</h2>
-                    <ul className="list-disc list-inside text-gray-400 space-y-2">
-                        <li>Understanding the basics of 3D modeling</li>
-                        <li>Optimizing assets for web performance</li>
-                        <li>Implementing interactions with React Three Fiber</li>
-                    </ul>
-                </div>
-            </motion.div>
-        </div>
-    )
+    if (!page) {
+        notFound()
+    }
+
+    return <PageRenderer page={page as any} />
 }

@@ -45,6 +45,26 @@ export async function resolveCategoryInfo(categoryValue: string | null): Promise
     }
 }
 
+/** Site-wide SEO defaults from Settings, used when a page has no SEO of its own. */
+export async function getDefaultSeo() {
+    try {
+        const rows = await prisma.settings.findMany({
+            where: { key: { in: ["defaultSeoTitle", "defaultSeoDescription", "defaultSeoKeywords"] } },
+        })
+        const map = rows.reduce((acc, r) => {
+            acc[r.key] = typeof r.value === "string" ? r.value : ""
+            return acc
+        }, {} as Record<string, string>)
+        return {
+            title: map.defaultSeoTitle || null,
+            description: map.defaultSeoDescription || null,
+            keywords: map.defaultSeoKeywords || null,
+        }
+    } catch {
+        return { title: null, description: null, keywords: null }
+    }
+}
+
 /**
  * Load a published page by slug with its breadcrumb and resolved side content
  * (page → category → site-wide settings). Direct DB access — pages must NOT
@@ -56,6 +76,7 @@ export async function getPublishedPageBySlug(slugPath: string) {
     if (!page || !page.isPublished) return null
 
     const { crumbs: categoryBreadcrumb, rootCategoryId } = await resolveCategoryInfo(page.category)
+    const rootCategoryName = categoryBreadcrumb[0] || null
 
     // Side content precedence: page → category → site-wide settings
     let sideContent = normalizeSideContent(page.sideContent)
@@ -72,5 +93,5 @@ export async function getPublishedPageBySlug(slugPath: string) {
 
     // JSON-safe shape (BigInt createdAt/updatedAt stripped)
     const { createdAt, updatedAt, ...rest } = page
-    return { ...rest, categoryBreadcrumb, sideContent }
+    return { ...rest, categoryBreadcrumb, rootCategoryName, sideContent }
 }

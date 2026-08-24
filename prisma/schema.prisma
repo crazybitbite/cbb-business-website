@@ -111,6 +111,9 @@ model Page {
   checkoutNote       String?
   sideContent        Json?
   cta                Json?
+  seoTitle           String?
+  seoDescription     String?
+  seoKeywords        String?
   createdAt          BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
   updatedAt          BigInt?  @db.BigInt
   orderItems         OrderItem[]

@@ -48,6 +48,9 @@ export default function EditPage({ params }: { params: { id: string } }) {
         downloadFileData: "",
         downloadFileName: "",
         removeDownloadFile: false,
+        seoTitle: "",
+        seoDescription: "",
+        seoKeywords: "",
         ctaEnabled: false,
         ctaTitle: "",
         ctaDescription: "",
@@ -87,6 +90,9 @@ export default function EditPage({ params }: { params: { id: string } }) {
                         downloadFileData: "",
                         downloadFileName: "",
                         removeDownloadFile: false,
+                        seoTitle: pageData.seoTitle || "",
+                        seoDescription: pageData.seoDescription || "",
+                        seoKeywords: pageData.seoKeywords || "",
                         ctaEnabled: !!pageData.cta?.enabled,
                         ctaTitle: pageData.cta?.title || "",
                         ctaDescription: pageData.cta?.description || "",
@@ -323,15 +329,17 @@ export default function EditPage({ params }: { params: { id: string } }) {
                     </div>
                 )}
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-300">Checkout Message / Terms <span className="text-gray-500 text-xs">(optional)</span></label>
-                    <p className="text-xs text-gray-500">Applies to priced or downloadable pages: shown on the checkout page with a mandatory &quot;I have read and accept it&quot; checkbox. Buyers cannot pay without accepting.</p>
-                    <RichTextEditor
-                        value={formData.checkoutNote}
-                        onChange={(value) => setFormData({ ...formData, checkoutNote: value })}
-                        placeholder="e.g. license terms, refund policy, delivery timeline..."
-                    />
-                </div>
+                {(formData.price !== "" || formData.downloadable) && (
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-300">Checkout Message / Terms <span className="text-gray-500 text-xs">(optional)</span></label>
+                        <p className="text-xs text-gray-500">Shown on the checkout page with a mandatory &quot;I have read and accept it&quot; checkbox. Buyers cannot pay without accepting.</p>
+                        <RichTextEditor
+                            value={formData.checkoutNote}
+                            onChange={(value) => setFormData({ ...formData, checkoutNote: value })}
+                            placeholder="e.g. license terms, refund policy, delivery timeline..."
+                        />
+                    </div>
+                )}
 
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-300">Featured Images</label>
@@ -615,6 +623,36 @@ export default function EditPage({ params }: { params: { id: string } }) {
                             </div>
                         </div>
                     )}
+                </div>
+
+                <div className="space-y-3 pt-2 rounded-xl border border-white/10 bg-white/5 p-4">
+                    <label className="text-sm font-semibold text-white">SEO</label>
+                    <div className="space-y-2">
+                        <input
+                            type="text"
+                            value={formData.seoTitle}
+                            onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
+                            placeholder="SEO title (defaults to the page name)"
+                            maxLength={70}
+                            className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
+                        />
+                        <textarea
+                            value={formData.seoDescription}
+                            onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
+                            placeholder="Meta description — ~155 characters shown in search results"
+                            rows={2}
+                            maxLength={170}
+                            className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
+                        />
+                        <input
+                            type="text"
+                            value={formData.seoKeywords}
+                            onChange={(e) => setFormData({ ...formData, seoKeywords: e.target.value })}
+                            placeholder="Keywords, comma separated"
+                            className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
+                        />
+                        <p className="text-xs text-gray-500">{formData.seoDescription.length}/170 characters. The first featured image is used as the social share image.</p>
+                    </div>
                 </div>
 
                 <div className="space-y-3 pt-2">

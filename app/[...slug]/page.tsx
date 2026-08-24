@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import { PageRenderer } from "@/components/PageRenderer"
-import { getPublishedPageBySlug } from "@/lib/pageData"
+import { getPublishedPageBySlug, getDefaultSeo } from "@/lib/pageData"
 
 export const dynamic = "force-dynamic"
 
@@ -11,13 +11,31 @@ export async function generateMetadata({ params }: { params: { slug: string[] } 
         return { title: "Page Not Found" }
     }
 
+    // Page-specific SEO wins; the site-wide defaults from Settings fill gaps
+    const defaults = await getDefaultSeo()
+    const title = page.seoTitle || defaults.title || page.name
+    const description =
+        page.seoDescription ||
+        defaults.description ||
+        page.shortDescription ||
+        page.description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().substring(0, 160)
+    const images = page.featuredImages.length > 0 ? [page.featuredImages[0]] : []
+
     return {
-        title: page.name,
-        description: page.shortDescription || page.description.substring(0, 160),
+        title,
+        description,
+        keywords: page.seoKeywords || defaults.keywords || undefined,
         openGraph: {
-            title: page.name,
-            description: page.shortDescription || page.description.substring(0, 160),
-            images: page.featuredImages.length > 0 ? [page.featuredImages[0]] : [],
+            title,
+            description,
+            type: "article",
+            images,
+        },
+        twitter: {
+            card: images.length ? "summary_large_image" : "summary",
+            title,
+            description,
+            images,
         },
     }
 }

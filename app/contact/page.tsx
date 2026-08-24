@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useState } from "react"
 import { useSiteSettings } from "@/components/SiteSettingsProvider"
+import { MessagingConnect } from "@/components/MessagingConnect"
 
 const contactSchema = z.object({
     firstName: z.string().min(2, { message: "First name must be at least 2 characters" }),
@@ -22,10 +23,12 @@ export default function ContactPage() {
     const [isSuccess, setIsSuccess] = useState(false)
     const { settings } = useSiteSettings()
 
-    // Values managed in admin settings, with the original copy as fallback
-    const contactEmail = settings.contactEmail || "contact@crazybitbite.com"
-    const supportPhone = settings.supportPhone || "+91 9725 44 99 11"
-    const address = settings.address || "123 Innovation Dr, Tech City, TC 90210"
+    // Only what's actually configured in admin settings is displayed
+    const contactEmail = settings.contactEmail || ""
+    const supportPhone = settings.supportPhone || ""
+    const address = settings.address || ""
+    const hasMessaging = !!(settings.telegram || settings.whatsapp || settings.telegramQr || settings.whatsappQr)
+    const hasAnyContactInfo = !!(contactEmail || supportPhone || address || hasMessaging)
 
     const {
         register,
@@ -79,36 +82,49 @@ export default function ContactPage() {
                     </p>
                 </div>
 
-                <div className="grid gap-12 md:grid-cols-2">
-                    {/* Contact Info */}
-                    <div className="space-y-8">
-                        <div className="rounded-2xl bg-white/5 border border-white/10 p-8 space-y-6">
-                            <h2 className="text-2xl font-bold text-white">Contact Information</h2>
-                            <div className="space-y-4">
-                                <div className="flex items-start space-x-4">
-                                    <Mail className="h-6 w-6 text-orange-400 mt-1" />
-                                    <div>
-                                        <p className="text-sm text-gray-400">Email</p>
-                                        <a href={`mailto:${contactEmail}`} className="text-white hover:text-orange-400 transition-colors">{contactEmail}</a>
-                                    </div>
+                <div className={`grid gap-12 ${hasAnyContactInfo ? "md:grid-cols-2" : "max-w-xl mx-auto"}`}>
+                    {/* Contact Info — only configured entries render */}
+                    {hasAnyContactInfo && (
+                        <div className="space-y-8">
+                            <div className="rounded-2xl bg-white/5 border border-white/10 p-8 space-y-6">
+                                <h2 className="text-2xl font-bold text-white">Contact Information</h2>
+                                <div className="space-y-4">
+                                    {contactEmail && (
+                                        <div className="flex items-start space-x-4">
+                                            <Mail className="h-6 w-6 text-orange-400 mt-1" />
+                                            <div>
+                                                <p className="text-sm text-gray-400">Email</p>
+                                                <a href={`mailto:${contactEmail}`} className="text-white hover:text-orange-400 transition-colors">{contactEmail}</a>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {supportPhone && (
+                                        <div className="flex items-start space-x-4">
+                                            <Phone className="h-6 w-6 text-orange-400 mt-1" />
+                                            <div>
+                                                <p className="text-sm text-gray-400">Phone</p>
+                                                <a href={`tel:${supportPhone.replace(/\s+/g, "")}`} className="text-white hover:text-orange-400 transition-colors">{supportPhone}</a>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {address && (
+                                        <div className="flex items-start space-x-4">
+                                            <MapPin className="h-6 w-6 text-orange-400 mt-1" />
+                                            <div>
+                                                <p className="text-sm text-gray-400">Office</p>
+                                                <p className="text-white whitespace-pre-line">{address}</p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex items-start space-x-4">
-                                    <Phone className="h-6 w-6 text-orange-400 mt-1" />
-                                    <div>
-                                        <p className="text-sm text-gray-400">Phone</p>
-                                        <a href={`tel:${supportPhone.replace(/\s+/g, "")}`} className="text-white hover:text-orange-400 transition-colors">{supportPhone}</a>
+                                {hasMessaging && (
+                                    <div className="pt-4 border-t border-white/10">
+                                        <MessagingConnect />
                                     </div>
-                                </div>
-                                <div className="flex items-start space-x-4">
-                                    <MapPin className="h-6 w-6 text-orange-400 mt-1" />
-                                    <div>
-                                        <p className="text-sm text-gray-400">Office</p>
-                                        <p className="text-white whitespace-pre-line">{address}</p>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Contact Form */}
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
