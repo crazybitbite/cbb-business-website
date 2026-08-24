@@ -66,7 +66,7 @@ export default function Home() {
               </p>
               <div className="flex gap-4">
                 <div className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 shadow-sm dark:shadow-none">
-                  <h3 className="text-2xl font-bold text-orange-500 dark:text-orange-400">50+</h3>
+                  <h3 className="text-2xl font-bold text-orange-500 dark:text-orange-400">150+</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Projects Completed</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 shadow-sm dark:shadow-none">

@@ -126,7 +126,7 @@ export default function ContactPage() {
                                     {...register("firstName")}
                                     type="text"
                                     className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition-colors"
-                                    placeholder="John"
+                                    placeholder="Firstname"
                                 />
                                 {errors.firstName && (
                                     <p className="text-xs text-red-400">{errors.firstName.message}</p>
@@ -151,7 +151,7 @@ export default function ContactPage() {
                                 {...register("email")}
                                 type="email"
                                 className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition-colors"
-                                placeholder="john@example.com"
+                                placeholder="youremail@example.com"
                             />
                             {errors.email && (
                                 <p className="text-xs text-red-400">{errors.email.message}</p>

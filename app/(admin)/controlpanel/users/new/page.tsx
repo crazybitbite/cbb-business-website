@@ -69,7 +69,7 @@ export default function NewUserPage() {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition-colors"
-                        placeholder="John Doe"
+                        placeholder="Firstname Lastname"
                     />
                 </div>
 
@@ -81,7 +81,7 @@ export default function NewUserPage() {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition-colors"
-                        placeholder="john@example.com"
+                        placeholder="youremail@example.com"
                     />
                 </div>
 
