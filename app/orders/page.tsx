@@ -52,7 +52,8 @@ export default async function OrdersPage() {
                                     <p className="text-xl font-bold text-white">{formatPrice(order.total, order.currency)}</p>
                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === "COMPLETED" ? "bg-green-500/10 text-green-400" :
                                         order.status === "PENDING" ? "bg-yellow-500/10 text-yellow-400" :
-                                            "bg-gray-500/10 text-gray-400"
+                                            order.status === "VERIFYING" ? "bg-blue-500/10 text-blue-400" :
+                                                "bg-gray-500/10 text-gray-400"
                                         }`}>
                                         {order.status}
                                     </span>

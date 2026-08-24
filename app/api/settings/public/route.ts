@@ -18,6 +18,8 @@ const PUBLIC_KEYS = [
     "logo",
     "currencyRates",
     "sideContent",
+    "defaultPaymentMethod",
+    "paymentQrCode",
 ]
 
 export async function GET() {

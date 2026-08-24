@@ -12,7 +12,7 @@ export default async function OrderDetailPage({
     searchParams,
 }: {
     params: { id: string }
-    searchParams?: { success?: string }
+    searchParams?: { success?: string; submitted?: string }
 }) {
     const session = await auth()
     if (!session) redirect("/login")
@@ -27,13 +27,23 @@ export default async function OrderDetailPage({
                 include: {
                     page: true
                 }
-            }
+            },
+            notes: { orderBy: { createdAt: "desc" } }
         }
     })
 
     if (!order || order.userId !== sessionUserId) {
         redirect("/orders")
     }
+
+    // Notes shown to the purchaser: the admin-checked ones; if none are
+    // checked, just the latest note. Legacy single-note fallback.
+    const checkedNotes = order.notes.filter((n) => n.visible)
+    const shownNotes = checkedNotes.length
+        ? checkedNotes
+        : order.notes.length
+            ? [order.notes[0]]
+            : []
 
     return (
         <div className="container mx-auto px-4 py-24 max-w-4xl">
@@ -42,6 +52,29 @@ export default async function OrderDetailPage({
             </Link>
 
             {searchParams?.success === "1" && <OrderSuccessBanner />}
+            {searchParams?.submitted === "1" && <OrderSuccessBanner variant="verifying" />}
+
+            {(shownNotes.length > 0 || order.verificationNote) && (
+                <div className={`mb-8 rounded-xl border p-4 space-y-3 ${order.status === "REJECTED"
+                    ? "bg-red-500/10 border-red-500/20 text-red-300"
+                    : "bg-white/5 border-white/10 text-gray-300"}`}>
+                    <p className="text-sm font-semibold">
+                        {shownNotes.length > 1 ? "Notes about your order" : "A note about your order"}
+                    </p>
+                    {shownNotes.length > 0 ? (
+                        shownNotes.map((note) => (
+                            <div key={note.id} className="border-l-2 border-orange-500/50 pl-3">
+                                <p className="text-sm whitespace-pre-line">{note.content}</p>
+                                <p className="text-xs opacity-60 mt-1">
+                                    {epochToDate(note.createdAt)?.toLocaleString()}
+                                </p>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-sm whitespace-pre-line">{order.verificationNote}</p>
+                    )}
+                </div>
+            )}
 
             <div className="flex items-center justify-between mb-8">
                 <div>
@@ -50,9 +83,10 @@ export default async function OrderDetailPage({
                 </div>
                 <div className={`px-4 py-2 rounded-full text-sm font-medium ${order.status === "COMPLETED" ? "bg-green-500/10 text-green-400" :
                     order.status === "PENDING" ? "bg-yellow-500/10 text-yellow-400" :
-                        "bg-gray-500/10 text-gray-400"
+                        order.status === "VERIFYING" ? "bg-blue-500/10 text-blue-400" :
+                            "bg-gray-500/10 text-gray-400"
                     }`}>
-                    {order.status}
+                    {order.status === "VERIFYING" ? "PAYMENT UNDER VERIFICATION" : order.status}
                 </div>
             </div>
 
@@ -103,8 +137,12 @@ export default async function OrderDetailPage({
                             <CreditCard className="h-5 w-5 mr-2 text-orange-500" />
                             Payment Info
                         </h3>
-                        <p className="text-gray-400">Payment via Stripe</p>
-                        <p className="text-sm text-gray-500 mt-2">ID: {order.stripeSessionId || "N/A"}</p>
+                        <p className="text-gray-400">Payment via {order.paymentMethod === "qr" ? "QR Code" : "Stripe"}</p>
+                        <p className="text-sm text-gray-500 mt-2">
+                            {order.paymentMethod === "qr"
+                                ? `Transaction ID: ${order.transactionId || "Not submitted yet"}`
+                                : `ID: ${order.stripeSessionId || "N/A"}`}
+                        </p>
                     </div>
                 </div>
             </div>

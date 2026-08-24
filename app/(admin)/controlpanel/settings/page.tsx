@@ -19,6 +19,8 @@ const EMPTY_SETTINGS = {
     logo: "",
     stripePublishableKey: "",
     stripeSecretKey: "",
+    defaultPaymentMethod: "stripe",
+    paymentQrCode: "",
 }
 
 type SettingsForm = typeof EMPTY_SETTINGS
@@ -201,10 +203,59 @@ export default function AdminSettings() {
                     </div>
                 </div>
 
-                {/* Payments (Stripe) */}
+                {/* Payments */}
                 <div className="rounded-xl border border-white/10 bg-black/40 p-6 space-y-6">
-                    <h2 className="text-xl font-semibold text-white">Payments (Stripe)</h2>
-                    <p className="text-xs text-gray-500">Used to accept payments at checkout. Get these from your Stripe dashboard → Developers → API keys.</p>
+                    <h2 className="text-xl font-semibold text-white">Payments</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">Default Payment Method</label>
+                            <p className="text-xs text-gray-500">Used at checkout for pages that don&apos;t choose their own payment method.</p>
+                            <select
+                                value={settings.defaultPaymentMethod}
+                                onChange={(e) => setSettings({ ...settings, defaultPaymentMethod: e.target.value })}
+                                className={`${inputClass} [&>option]:bg-gray-900`}
+                            >
+                                <option value="stripe">Stripe (Card)</option>
+                                <option value="qr">QR Code</option>
+                                <option value="both">Both (QR + Stripe)</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">Payment QR Code</label>
+                            <p className="text-xs text-gray-500">Shown to customers who choose QR payment. Upload your UPI / bank QR image.</p>
+                            {settings.paymentQrCode ? (
+                                <div className="flex items-center gap-4">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={settings.paymentQrCode} alt="Payment QR preview" className="h-24 w-24 object-contain rounded-lg bg-white p-1" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setSettings({ ...settings, paymentQrCode: "" })}
+                                        className="flex items-center gap-1 text-sm text-red-400 hover:text-red-300"
+                                    >
+                                        <X className="h-4 w-4" /> Remove
+                                    </button>
+                                </div>
+                            ) : (
+                                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:bg-white/5 transition-colors">
+                                    <Upload className="h-5 w-5 text-gray-400 mb-1" />
+                                    <p className="text-xs text-gray-400">Click to upload QR code</p>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0]
+                                            if (!file) return
+                                            const reader = new FileReader()
+                                            reader.onload = (ev) => setSettings(prev => ({ ...prev, paymentQrCode: ev.target?.result as string }))
+                                            reader.readAsDataURL(file)
+                                        }}
+                                    />
+                                </label>
+                            )}
+                        </div>
+                    </div>
+                    <p className="text-xs text-gray-500">Stripe keys — from your Stripe dashboard → Developers → API keys.</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-300">Publishable Key</label>

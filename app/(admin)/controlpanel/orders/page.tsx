@@ -3,6 +3,8 @@ import { epochToDate } from "@/lib/utils"
 import { format } from "date-fns"
 import { Package, Search, Eye } from "lucide-react"
 import Link from "next/link"
+import { VerifyOrderActions } from "@/components/admin/VerifyOrderActions"
+import { OrderDetailModal } from "@/components/admin/OrderDetailModal"
 
 export const dynamic = "force-dynamic"
 
@@ -89,7 +91,9 @@ export default async function OrdersPage() {
                                                         ? "bg-green-500/10 text-green-400"
                                                         : order.status === "PENDING"
                                                             ? "bg-yellow-500/10 text-yellow-400"
-                                                            : "bg-red-500/10 text-red-400"
+                                                            : order.status === "VERIFYING"
+                                                                ? "bg-blue-500/10 text-blue-400"
+                                                                : "bg-red-500/10 text-red-400"
                                                     }`}
                                             >
                                                 {order.status}
@@ -99,9 +103,12 @@ export default async function OrdersPage() {
                                             {order.items.length} items
                                         </td>
                                         <td className="px-6 py-4">
-                                            <button className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                                                <Eye className="h-4 w-4" />
-                                            </button>
+                                            <div className="flex items-center gap-3">
+                                                <OrderDetailModal orderId={order.id} />
+                                                {order.status === "VERIFYING" && order.paymentMethod === "qr" && (
+                                                    <VerifyOrderActions orderId={order.id} transactionId={order.transactionId} />
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

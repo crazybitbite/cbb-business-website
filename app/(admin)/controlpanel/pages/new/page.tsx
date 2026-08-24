@@ -29,6 +29,8 @@ export default function NewPage() {
         shortDescription: "",
         price: "",
         currency: "USD",
+        paymentMethods: "",
+        checkoutNote: "",
         category: "",
         featuredImages: [] as string[],
         bannerImages: [] as string[],
@@ -208,6 +210,32 @@ export default function NewPage() {
                         />
                     </div>
                     <p className="text-xs text-gray-500">If no price is entered, the page is treated as open to use and no price is shown to visitors.</p>
+                </div>
+
+                {formData.price !== "" && (
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-300">Payment Method <span className="text-gray-500 text-xs">(optional)</span></label>
+                        <select
+                            value={formData.paymentMethods}
+                            onChange={(e) => setFormData({ ...formData, paymentMethods: e.target.value })}
+                            className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-orange-500 focus:outline-none [&>option]:bg-gray-900"
+                        >
+                            <option value="">Use default from Settings</option>
+                            <option value="stripe">Stripe (Card)</option>
+                            <option value="qr">QR Code</option>
+                            <option value="both">Both (QR + Stripe)</option>
+                        </select>
+                    </div>
+                )}
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-300">Checkout Message / Terms <span className="text-gray-500 text-xs">(optional)</span></label>
+                    <p className="text-xs text-gray-500">Applies to priced or downloadable pages: shown on the checkout page with a mandatory &quot;I have read and accept it&quot; checkbox. Buyers cannot pay without accepting.</p>
+                    <RichTextEditor
+                        value={formData.checkoutNote}
+                        onChange={(value) => setFormData({ ...formData, checkoutNote: value })}
+                        placeholder="e.g. license terms, refund policy, delivery timeline..."
+                    />
                 </div>
 
                 <div className="space-y-2">

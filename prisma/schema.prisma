@@ -103,6 +103,10 @@ model Page {
   modelUrl           String?
   downloadFileId     Int?     @unique
   downloadFile       DownloadFile? @relation(fields: [downloadFileId], references: [id])
+  // "stripe" | "qr" | "both"; null = use the settings default
+  paymentMethods     String?
+  // Rich-text terms shown at checkout with a mandatory accept checkbox
+  checkoutNote       String?
   sideContent        Json?
   cta                Json?
   createdAt          BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
@@ -130,9 +134,26 @@ model Order {
   total         Float
   currency      String      @default("USD")
   stripeSessionId String?
+  paymentMethod String      @default("stripe")
+  transactionId String?
+  // Legacy single note (superseded by OrderNote rows; kept for old orders)
+  verificationNote String?
+  notes         OrderNote[]
   createdAt     BigInt      @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
   updatedAt     BigInt?     @db.BigInt
   items         OrderItem[]
+}
+
+// Admin notes on an order. "visible" ones are shown to the purchaser with
+// their date; if none are checked, only the latest note is shown.
+model OrderNote {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  content   String
+  visible   Boolean @default(false)
+  createdAt BigInt  @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  updatedAt BigInt? @db.BigInt
 }
 
 model OrderItem {

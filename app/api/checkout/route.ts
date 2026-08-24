@@ -27,6 +27,18 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Cart is empty" }, { status: 400 })
         }
 
+        // Items with checkout terms require explicit acceptance
+        const withNotes = await prisma.page.count({
+            where: {
+                id: { in: requestedItems.map((i) => Number(i.id)) },
+                checkoutNote: { not: null },
+                NOT: { checkoutNote: "" },
+            },
+        })
+        if (withNotes > 0 && json.acceptedTerms !== true) {
+            return NextResponse.json({ error: "Please accept the checkout terms first." }, { status: 400 })
+        }
+
         const checkoutCurrency: string = CURRENCY_CODES.includes(json.currency) ? json.currency : "USD"
         const rates = await getCurrencyRates()
 

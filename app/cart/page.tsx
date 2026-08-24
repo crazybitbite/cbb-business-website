@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Trash2, ShoppingBag, ArrowRight, Loader2 } from "lucide-react"
+import { Trash2, ShoppingBag, ArrowRight, Loader2, CreditCard, QrCode, X, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -10,54 +10,140 @@ import { useCartStore } from "@/lib/store"
 import { useSiteSettings } from "@/components/SiteSettingsProvider"
 import { convertPrice, formatPrice } from "@/lib/currency"
 
+interface CheckoutNote {
+    pageId: number
+    name: string
+    note: string
+}
+
+interface CheckoutInfo {
+    methods: ("stripe" | "qr")[]
+    conflict: boolean
+    notes: CheckoutNote[]
+    qrCode: string | null
+    contactEmail: string | null
+}
+
+interface QrPayment {
+    total: number
+    currency: string
+    qrCode: string
+}
+
 export default function CartPage() {
     const { items, removeItem, clearCart } = useCartStore()
     const { settings, displayCurrency, displayPrice } = useSiteSettings()
     const { data: session } = useSession()
     const router = useRouter()
     const [isCheckingOut, setIsCheckingOut] = useState(false)
+    const [info, setInfo] = useState<CheckoutInfo | null>(null)
+    const [method, setMethod] = useState<"stripe" | "qr">("stripe")
+    const [acceptedNotes, setAcceptedNotes] = useState<Record<number, boolean>>({})
+    const [qrPayment, setQrPayment] = useState<QrPayment | null>(null)
+    const [transactionId, setTransactionId] = useState("")
+    const [qrError, setQrError] = useState("")
+    const [isConfirming, setIsConfirming] = useState(false)
 
-    // Total in the visitor's display currency; falls back to summing raw amounts
-    // when rates are unavailable (mixed currencies are then summed as-is).
+    // Load payment methods / terms whenever the cart contents change
+    useEffect(() => {
+        if (!items.length) {
+            setInfo(null)
+            return
+        }
+        fetch("/api/checkout/info", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items: items.map((i) => ({ id: i.id })) }),
+        })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+                if (data) {
+                    setInfo(data)
+                    if (data.methods?.length) setMethod(data.methods[0])
+                }
+            })
+            .catch(() => { })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [JSON.stringify(items.map((i) => i.id))])
+
     const total = items.reduce((sum, item) => {
-        const converted = convertPrice(
-            item.price,
-            item.currency || "USD",
-            displayCurrency,
-            settings.currencyRates
-        )
+        const converted = convertPrice(item.price, item.currency || "USD", displayCurrency, settings.currencyRates)
         return sum + (converted ?? item.price) * item.quantity
     }, 0)
+
+    const allNotesAccepted = !info?.notes.length || info.notes.every((n) => acceptedNotes[n.pageId])
+    const checkoutBlocked = !!info?.conflict || !allNotesAccepted
 
     const handleCheckout = async () => {
         if (!session) {
             router.push("/login?callbackUrl=/cart")
             return
         }
+        if (checkoutBlocked) return
 
         setIsCheckingOut(true)
         try {
-            const res = await fetch("/api/checkout", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    items: items.map((item) => ({ id: item.id, quantity: item.quantity })),
-                    currency: displayCurrency,
-                }),
-            })
-
-            const data = await res.json()
-            if (res.ok && data.url) {
-                // Cart is cleared on the order success page, so it survives a cancelled payment
-                window.location.href = data.url
+            if (method === "qr") {
+                // No order is created yet — it's written to the database only
+                // when the buyer submits a valid transaction id.
+                if (!info?.qrCode) {
+                    alert("QR payment is not available right now.")
+                } else {
+                    setQrError("")
+                    setTransactionId("")
+                    setQrPayment({ total, currency: displayCurrency, qrCode: info.qrCode })
+                }
             } else {
-                alert(data.error || "Checkout failed. Please try again.")
+                const res = await fetch("/api/checkout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        items: items.map((item) => ({ id: item.id, quantity: item.quantity })),
+                        currency: displayCurrency,
+                        acceptedTerms: true,
+                    }),
+                })
+                const data = await res.json()
+                if (res.ok && data.url) {
+                    // Cart is cleared on the order success page, so it survives a cancelled payment
+                    window.location.href = data.url
+                } else {
+                    alert(data.error || "Checkout failed. Please try again.")
+                }
             }
         } catch (error) {
             console.error("Checkout error:", error)
             alert("Checkout failed. Please check your connection.")
         } finally {
             setIsCheckingOut(false)
+        }
+    }
+
+    const handleConfirmQrPayment = async () => {
+        if (!qrPayment) return
+        setIsConfirming(true)
+        setQrError("")
+        try {
+            const res = await fetch("/api/checkout/qr", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    items: items.map((item) => ({ id: item.id, quantity: item.quantity })),
+                    currency: displayCurrency,
+                    acceptedTerms: true,
+                    transactionId,
+                }),
+            })
+            const data = await res.json()
+            if (res.ok && data.ok) {
+                router.push(`/orders/${data.orderId}?submitted=1`)
+            } else {
+                setQrError(data.error || "Could not confirm the payment. Please try again.")
+            }
+        } catch {
+            setQrError("Could not confirm the payment. Please check your connection.")
+        } finally {
+            setIsConfirming(false)
         }
     }
 
@@ -125,6 +211,41 @@ export default function CartPage() {
                         >
                             Clear Cart
                         </button>
+
+                        {/* Payment method conflict */}
+                        {info?.conflict && (
+                            <div className="flex items-start gap-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 p-4 text-yellow-400">
+                                <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                                <p className="text-sm">
+                                    These items support different payment methods and can&apos;t be paid together.
+                                    Please remove one and buy them separately.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Checkout terms (mandatory) */}
+                        {!!info?.notes.length && (
+                            <div className="space-y-4">
+                                {info.notes.map((n) => (
+                                    <div key={n.pageId} className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
+                                        <h4 className="text-sm font-semibold text-white">{n.name} — please read before paying</h4>
+                                        <div
+                                            className="prose prose-invert prose-sm max-w-none text-gray-400"
+                                            dangerouslySetInnerHTML={{ __html: n.note }}
+                                        />
+                                        <label className="flex items-center gap-2 text-sm text-white cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={!!acceptedNotes[n.pageId]}
+                                                onChange={(e) => setAcceptedNotes((prev) => ({ ...prev, [n.pageId]: e.target.checked }))}
+                                                className="h-4 w-4 rounded accent-orange-600"
+                                            />
+                                            I have read and accept it
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-6">
@@ -144,24 +265,119 @@ export default function CartPage() {
                                     <span className="text-orange-400">{formatPrice(total, displayCurrency)}</span>
                                 </div>
                             </div>
+
+                            {/* Payment method choice */}
+                            {!info?.conflict && (info?.methods.length ?? 0) > 1 && (
+                                <div className="space-y-2 pt-1">
+                                    <p className="text-sm font-medium text-gray-300">Pay with</p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            onClick={() => setMethod("stripe")}
+                                            className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${method === "stripe" ? "border-orange-500 bg-orange-500/10 text-white" : "border-white/10 text-gray-400 hover:bg-white/5"}`}
+                                        >
+                                            <CreditCard className="h-4 w-4" /> Card
+                                        </button>
+                                        <button
+                                            onClick={() => setMethod("qr")}
+                                            className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${method === "qr" ? "border-orange-500 bg-orange-500/10 text-white" : "border-white/10 text-gray-400 hover:bg-white/5"}`}
+                                        >
+                                            <QrCode className="h-4 w-4" /> QR Code
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            {!info?.conflict && info?.methods.length === 1 && (
+                                <p className="text-xs text-gray-500 flex items-center gap-1">
+                                    {info.methods[0] === "qr" ? <QrCode className="h-3.5 w-3.5" /> : <CreditCard className="h-3.5 w-3.5" />}
+                                    Payment via {info.methods[0] === "qr" ? "QR code" : "card (Stripe)"}
+                                </p>
+                            )}
+
                             <button
                                 onClick={handleCheckout}
-                                disabled={isCheckingOut}
-                                className="w-full flex items-center justify-center gap-2 bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition-colors disabled:opacity-50"
+                                disabled={isCheckingOut || checkoutBlocked}
+                                className="w-full flex items-center justify-center gap-2 bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isCheckingOut ? (
                                     <>
                                         <Loader2 className="h-5 w-5 animate-spin" />
-                                        <span>Redirecting...</span>
+                                        <span>Please wait...</span>
                                     </>
                                 ) : (
                                     <span>Checkout</span>
                                 )}
                             </button>
+                            {!allNotesAccepted && (
+                                <p className="text-xs text-yellow-400">Please accept the terms above to continue.</p>
+                            )}
                         </div>
                     </div>
                 </div>
             </motion.div>
+
+            {/* QR payment modal */}
+            {qrPayment && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setQrPayment(null)} />
+                    <div className="relative w-full max-w-md rounded-2xl bg-gray-900 border border-white/10 p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+                        <button
+                            onClick={() => setQrPayment(null)}
+                            className="absolute top-4 right-4 p-1 rounded-full hover:bg-white/10 text-gray-400"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+
+                        <h3 className="text-xl font-bold text-white">Scan &amp; Pay</h3>
+                        <p className="text-sm text-gray-400">
+                            Scan the QR code and pay <span className="font-bold text-orange-400">{formatPrice(qrPayment.total, qrPayment.currency)}</span>.
+                            Then enter the <strong className="text-white">12-digit transaction id (UTR)</strong> shown in your payment app.
+                            Your payment is verified against our bank records before the order is confirmed.
+                        </p>
+
+                        <div className="flex justify-center">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={qrPayment.qrCode} alt="Payment QR code" className="w-56 h-56 object-contain rounded-xl bg-white p-2" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">Transaction ID</label>
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={12}
+                                value={transactionId}
+                                onChange={(e) => setTransactionId(e.target.value.replace(/\D/g, ""))}
+                                placeholder="12-digit UTR, e.g. 415023987654"
+                                className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-white focus:border-orange-500 focus:outline-none"
+                            />
+                        </div>
+
+                        {qrError && (
+                            <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
+                                {qrError}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={handleConfirmQrPayment}
+                            disabled={isConfirming || transactionId.trim().length !== 12}
+                            className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-bold transition-colors disabled:opacity-50"
+                        >
+                            {isConfirming ? (
+                                <>
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <span>Verifying...</span>
+                                </>
+                            ) : (
+                                <span>I have paid — Confirm</span>
+                            )}
+                        </button>
+                        <p className="text-xs text-gray-500 text-center">
+                            Your order is recorded once you submit the transaction id, and confirmed after we verify the payment.
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

@@ -85,6 +85,8 @@ export async function PUT(
                 shortDescription: json.shortDescription || null,
                 price: json.price === "" || json.price == null ? null : parseFloat(json.price),
                 currency: json.currency || "USD",
+                paymentMethods: json.paymentMethods || null,
+                checkoutNote: json.checkoutNote || null,
                 category: json.category?.toString() ?? "",
                 featured: !!json.featured,
                 isPublished: !!json.isPublished,
