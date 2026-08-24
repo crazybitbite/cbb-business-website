@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { Facebook, Twitter, Instagram, Linkedin, Github } from "lucide-react"
+import { Facebook, Twitter, Instagram, Linkedin, Send, MessageCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import { BrandLogo } from "@/components/layout/Navbar"
+import { useSiteSettings } from "@/components/SiteSettingsProvider"
 
 export function Footer({ initialNavigation }: { initialNavigation?: { name: string; href: string }[] | null }) {
     const defaultLinks = [
@@ -14,6 +15,7 @@ export function Footer({ initialNavigation }: { initialNavigation?: { name: stri
     ]
 
     const [navigation, setNavigation] = useState(initialNavigation?.length ? initialNavigation : defaultLinks)
+    const { settings } = useSiteSettings()
 
     useEffect(() => {
         // Server already resolved the menu — no client fetch, no pop-in
@@ -100,6 +102,12 @@ export function Footer({ initialNavigation }: { initialNavigation?: { name: stri
                             <a href="https://twitter.com/crazybitbite" className="hover:text-orange-500"><Twitter className="h-5 w-5" /></a>
                             <a href="https://www.instagram.com/crazybitbite" className="hover:text-orange-500"><Instagram className="h-5 w-5" /></a>
                             <a href="https://www.linkedin.com/company/crazybitbite" className="hover:text-orange-500"><Linkedin className="h-5 w-5" /></a>
+                            {settings.telegram && (
+                                <a href={settings.telegram} target="_blank" rel="noopener noreferrer" title="Telegram" className="hover:text-orange-500"><Send className="h-5 w-5" /></a>
+                            )}
+                            {settings.whatsapp && (
+                                <a href={settings.whatsapp} target="_blank" rel="noopener noreferrer" title="WhatsApp" className="hover:text-orange-500"><MessageCircle className="h-5 w-5" /></a>
+                            )}
                         </div>
                     </div>
                 </div>

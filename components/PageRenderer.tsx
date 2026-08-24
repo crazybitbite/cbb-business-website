@@ -9,6 +9,7 @@ import { useSiteSettings } from "@/components/SiteSettingsProvider"
 import { DownloadButton } from "@/components/DownloadButton"
 import { CurrencySelector } from "@/components/CurrencySelector"
 import { SideRail } from "@/components/SideRail"
+import { RelatedArticles } from "@/components/RelatedArticles"
 import type { SideContent } from "@/lib/sideContent"
 import { effectivePrice } from "@/lib/pricing"
 
@@ -34,6 +35,7 @@ interface PageData {
     bannerImages: string[]
     category: string
     categoryBreadcrumb?: string[]
+    rootCategoryName?: string | null
     featured: boolean
     isPublished: boolean
     downloadable?: boolean
@@ -191,6 +193,17 @@ export function PageRenderer({ page }: PageRendererProps) {
 
                         {/* Description */}
                         <div className="py-10">
+                            {/* Blog articles: the uploaded featured image is the hero */}
+                            {page.rootCategoryName?.toLowerCase() === "blog" && !page.bannerImages.length && page.featuredImages[0] && (
+                                <figure className="mb-8 rounded-2xl overflow-hidden border border-white/10 max-w-[780px] mx-auto">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={page.featuredImages[0]}
+                                        alt={page.name}
+                                        className="w-full aspect-[16/9] object-cover"
+                                    />
+                                </figure>
+                            )}
                             <div
                                 className="prose prose-invert max-w-none"
                                 dangerouslySetInnerHTML={{ __html: page.description }}
@@ -216,6 +229,15 @@ export function PageRenderer({ page }: PageRendererProps) {
                     </aside>
                 )}
             </div>
+
+            {/* Related articles carousel (blog posts only) */}
+            {page.rootCategoryName?.toLowerCase() === "blog" && (
+                <RelatedArticles
+                    rootCategory={page.rootCategoryName}
+                    categoryValue={page.category}
+                    currentPageId={page.id}
+                />
+            )}
 
             {/* Call to Action */}
             {showCta && (

@@ -20,6 +20,10 @@ interface PublicSettings {
     twitter?: string
     instagram?: string
     linkedin?: string
+    telegram?: string
+    whatsapp?: string
+    telegramQr?: string
+    whatsappQr?: string
     defaultCurrency?: string
     logo?: string
     currencyRates?: CurrencyRates
