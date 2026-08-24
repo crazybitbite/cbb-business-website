@@ -10,6 +10,7 @@ import { DownloadButton } from "@/components/DownloadButton"
 import { CurrencySelector } from "@/components/CurrencySelector"
 import { SideRail } from "@/components/SideRail"
 import type { SideContent } from "@/lib/sideContent"
+import { effectivePrice } from "@/lib/pricing"
 
 export interface PageCta {
     enabled?: boolean
@@ -27,6 +28,8 @@ interface PageData {
     shortDescription?: string
     price: number | null
     currency?: string
+    discountAmount?: number | null
+    discountPercent?: number | null
     featuredImages: string[]
     bannerImages: string[]
     category: string
@@ -72,7 +75,8 @@ export function PageRenderer({ page }: PageRendererProps) {
     }, [setSuppressGlobalRails])
 
     // Price of 0 (or none) means open to use — show nothing price-related at all
-    const hasPaidPrice = page.price != null && page.price > 0
+    const pricing = effectivePrice(page.price, page.discountAmount, page.discountPercent)
+    const hasPaidPrice = pricing != null && pricing.final > 0
     const pageCurrency = page.currency || "USD"
     const crumbs = page.categoryBreadcrumb || []
 
@@ -90,7 +94,7 @@ export function PageRenderer({ page }: PageRendererProps) {
         addItem({
             id: page.id,
             name: page.name,
-            price: page.price as number,
+            price: (pricing as NonNullable<typeof pricing>).final,
             currency: pageCurrency,
             image: page.featuredImages[0],
         })
@@ -141,8 +145,18 @@ export function PageRenderer({ page }: PageRendererProps) {
                                     <div className="flex flex-wrap items-center gap-3">
                                         {hasPaidPrice && (
                                             <>
+                                                {pricing!.hasDiscount && (
+                                                    <span className="flex items-center gap-2">
+                                                        <span className="text-sm text-gray-500 line-through">
+                                                            {displayPrice(pricing!.original, pageCurrency)}
+                                                        </span>
+                                                        <span className="animate-pulse rounded-full bg-gradient-to-r from-orange-600 to-pink-600 px-2.5 py-0.5 text-xs font-bold text-white shadow-lg shadow-orange-500/30">
+                                                            {pricing!.percentOff}% OFF
+                                                        </span>
+                                                    </span>
+                                                )}
                                                 <span className="text-xl font-bold text-orange-500">
-                                                    {displayPrice(page.price as number, pageCurrency)}
+                                                    {displayPrice(pricing!.final, pageCurrency)}
                                                 </span>
                                                 <CurrencySelector />
                                                 <button

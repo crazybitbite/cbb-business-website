@@ -126,7 +126,12 @@ function UserDropdown() {
     )
 }
 
-export function Navbar() {
+export interface NavbarProps {
+    /** Server-resolved navigation, so the menu renders complete on first paint */
+    initialNavigation?: { name: string; href: string; submenu?: any[] }[] | null
+}
+
+export function Navbar({ initialNavigation }: NavbarProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [isScrolled, setIsScrolled] = useState(false)
     const [openMenuName, setOpenMenuName] = useState<string | null>(null)
@@ -157,9 +162,12 @@ export function Navbar() {
         { name: "Contact", href: "/contact", isEnabled: true },
     ]
 
-    const [navigation, setNavigation] = useState(defaultLinks)
+    const [navigation, setNavigation] = useState(initialNavigation?.length ? initialNavigation : defaultLinks)
 
     useEffect(() => {
+        // Server already resolved the menu — no client fetch, no pop-in
+        if (initialNavigation?.length) return
+
         const fetchNav = async () => {
             try {
                 const res = await fetch("/api/navigation")
@@ -193,6 +201,7 @@ export function Navbar() {
             }
         }
         fetchNav()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     // Hide Navbar on Admin pages

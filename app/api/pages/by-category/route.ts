@@ -53,6 +53,8 @@ export async function GET(req: NextRequest) {
                 featuredImages: true,
                 price: true,
                 currency: true,
+                discountAmount: true,
+                discountPercent: true,
                 downloadable: true,
                 downloadPlatforms: true,
                 category: true,

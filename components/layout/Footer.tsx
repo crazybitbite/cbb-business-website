@@ -5,7 +5,7 @@ import { Facebook, Twitter, Instagram, Linkedin, Github } from "lucide-react"
 import { useState, useEffect } from "react"
 import { BrandLogo } from "@/components/layout/Navbar"
 
-export function Footer() {
+export function Footer({ initialNavigation }: { initialNavigation?: { name: string; href: string }[] | null }) {
     const defaultLinks = [
         { name: "About Us", href: "/about" },
         { name: "Services", href: "/services" },
@@ -13,9 +13,12 @@ export function Footer() {
         { name: "Projects", href: "/projects" },
     ]
 
-    const [navigation, setNavigation] = useState(defaultLinks)
+    const [navigation, setNavigation] = useState(initialNavigation?.length ? initialNavigation : defaultLinks)
 
     useEffect(() => {
+        // Server already resolved the menu — no client fetch, no pop-in
+        if (initialNavigation?.length) return
+
         const fetchNav = async () => {
             try {
                 const res = await fetch("/api/navigation")
@@ -49,6 +52,7 @@ export function Footer() {
             }
         }
         fetchNav()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return (

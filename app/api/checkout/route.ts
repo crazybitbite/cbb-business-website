@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { getStripe } from "@/lib/stripe"
 import { getCurrencyRates } from "@/lib/currencyRates"
 import { convertPrice, CURRENCY_CODES, ZERO_DECIMAL_CURRENCIES } from "@/lib/currency"
+import { effectivePrice } from "@/lib/pricing"
 
 export async function POST(req: Request) {
     try {
@@ -50,9 +51,10 @@ export async function POST(req: Request) {
         const lineItems: { pageId: number; name: string; unitPrice: number; quantity: number }[] = []
         for (const item of requestedItems) {
             const page = pages.find((p) => p.id === Number(item.id))
-            if (!page || page.price == null) continue // free/open pages can't be purchased
+            const pricing = effectivePrice(page?.price, page?.discountAmount, page?.discountPercent)
+            if (!page || !pricing || pricing.final <= 0) continue // free/open pages can't be purchased
 
-            const converted = convertPrice(page.price, page.currency || "USD", checkoutCurrency, rates)
+            const converted = convertPrice(pricing.final, page.currency || "USD", checkoutCurrency, rates)
             if (converted === null) {
                 return NextResponse.json(
                     { error: `Currency conversion unavailable for ${page.currency}. Please try again later.` },

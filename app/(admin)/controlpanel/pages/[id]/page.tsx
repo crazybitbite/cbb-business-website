@@ -31,6 +31,8 @@ export default function EditPage({ params }: { params: { id: string } }) {
         shortDescription: "",
         price: "",
         currency: "USD",
+        discountAmount: "",
+        discountPercent: "",
         paymentMethods: "",
         checkoutNote: "",
         category: "",
@@ -68,6 +70,8 @@ export default function EditPage({ params }: { params: { id: string } }) {
                         shortDescription: pageData.shortDescription || "",
                         price: pageData.price != null ? pageData.price.toString() : "",
                         currency: pageData.currency || "USD",
+                        discountAmount: pageData.discountAmount != null ? pageData.discountAmount.toString() : "",
+                        discountPercent: pageData.discountPercent != null ? pageData.discountPercent.toString() : "",
                         paymentMethods: pageData.paymentMethods || "",
                         checkoutNote: pageData.checkoutNote || "",
                         category: pageData.category || "",
@@ -274,6 +278,34 @@ export default function EditPage({ params }: { params: { id: string } }) {
                     </div>
                     <p className="text-xs text-gray-500">If no price is entered, the page is treated as open to use and no price is shown to visitors.</p>
                 </div>
+
+                {formData.price !== "" && (
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-300">Discount <span className="text-gray-500 text-xs">(optional — enter one; amount wins if both)</span></label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={formData.discountAmount}
+                                onChange={(e) => setFormData({ ...formData, discountAmount: e.target.value })}
+                                placeholder={`Discount amount (${formData.currency})`}
+                                className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-orange-500 focus:outline-none"
+                            />
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="100"
+                                value={formData.discountPercent}
+                                onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
+                                placeholder="Discount %"
+                                className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-orange-500 focus:outline-none"
+                            />
+                        </div>
+                        <p className="text-xs text-gray-500">Visitors see the actual price struck through next to the discounted price with an animated offer badge.</p>
+                    </div>
+                )}
 
                 {formData.price !== "" && (
                     <div className="space-y-2">

@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { effectivePrice } from "@/lib/pricing"
 import type { Page } from "@prisma/client"
 
 export type DownloadAccessResult =
@@ -24,7 +25,8 @@ export async function checkDownloadAccess(pageId: number): Promise<DownloadAcces
     }
 
     const requiredPlatforms = page.downloadPlatforms || []
-    const requiresPurchase = page.price != null && page.price > 0
+    const pricing = effectivePrice(page.price, page.discountAmount, page.discountPercent)
+    const requiresPurchase = pricing != null && pricing.final > 0
 
     if (requiredPlatforms.length > 0 || requiresPurchase) {
         const session = await auth()

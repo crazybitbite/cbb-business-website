@@ -8,6 +8,7 @@ import { ShoppingCart, Loader2, Check } from "lucide-react"
 import { useCartStore } from "@/lib/store"
 import { useSiteSettings } from "@/components/SiteSettingsProvider"
 import { DownloadButton } from "@/components/DownloadButton"
+import { effectivePrice } from "@/lib/pricing"
 
 export interface ShowcasePage {
     id: number
@@ -17,6 +18,8 @@ export interface ShowcasePage {
     featuredImages: string[]
     price: number | null
     currency: string
+    discountAmount?: number | null
+    discountPercent?: number | null
     downloadable: boolean
     downloadPlatforms: string[]
 }
@@ -79,11 +82,12 @@ export function ShowcaseCard({ page, index, variant }: { page: ShowcasePage; ind
     const [justAdded, setJustAdded] = useState(false)
 
     const href = `/${page.slug}`
-    const hasPaidPrice = page.price != null && page.price > 0
+    const pricing = effectivePrice(page.price, page.discountAmount, page.discountPercent)
+    const hasPaidPrice = pricing != null && pricing.final > 0
 
     const handleAddToCart = () => {
-        if (page.price == null) return
-        addItem({ id: page.id, name: page.name, price: page.price, currency: page.currency || "USD", image: page.featuredImages[0] })
+        if (!hasPaidPrice) return
+        addItem({ id: page.id, name: page.name, price: pricing!.final, currency: page.currency || "USD", image: page.featuredImages[0] })
         setJustAdded(true)
         setTimeout(() => setJustAdded(false), 2000)
     }
@@ -143,9 +147,21 @@ export function ShowcaseCard({ page, index, variant }: { page: ShowcasePage; ind
                     <div className="pt-2 border-t border-black/10 dark:border-white/10 space-y-3">
                         {hasPaidPrice ? (
                             <>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-lg font-bold text-orange-500 dark:text-orange-400">
-                                        {displayPrice(page.price as number, page.currency || "USD")}
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <span className="flex items-center gap-2 flex-wrap">
+                                        {pricing!.hasDiscount && (
+                                            <>
+                                                <span className="text-xs text-gray-500 line-through">
+                                                    {displayPrice(pricing!.original, page.currency || "USD")}
+                                                </span>
+                                                <span className="animate-pulse rounded-full bg-gradient-to-r from-orange-600 to-pink-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-lg shadow-orange-500/30">
+                                                    {pricing!.percentOff}% OFF
+                                                </span>
+                                            </>
+                                        )}
+                                        <span className="text-lg font-bold text-orange-500 dark:text-orange-400">
+                                            {displayPrice(pricing!.final, page.currency || "USD")}
+                                        </span>
                                     </span>
                                     <button
                                         onClick={handleBuyNow}

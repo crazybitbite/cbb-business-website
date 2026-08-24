@@ -91,6 +91,8 @@ model Page {
   shortDescription   String?
   price              Float?
   currency           String   @default("USD")
+  discountAmount     Float?
+  discountPercent    Float?
   featuredImages     String[]
   bannerImages       String[]
   category           String   @default("General")

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowRight, Mail } from "lucide-react"
 import { ServiceCards } from "@/components/ServiceCards"
 import { PageShowcase } from "@/components/home/PageShowcase"
+import { ShowcaseSection } from "@/components/home/ShowcaseSection"
 export default function Home() {
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
@@ -105,26 +106,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Projects Section */}
-      <section id="projects" className="py-24 bg-gray-50/50 dark:bg-black/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-end mb-12">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl mb-4">Featured Digital Products</h2>
-              <p className="text-gray-600 dark:text-gray-400">Check out some of our recent work.</p>
-            </div>
-            <Link href="/pages" className="hidden md:flex items-center text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300">
-              View All <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
-          <PageShowcase category="Digital Products" variant="product" columns={3} />
-          <div className="mt-8 text-center md:hidden">
-            <Link href="/pages" className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 inline-flex items-center">
-              View All <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Featured Digital Products — hidden entirely when no showcased products */}
+      <ShowcaseSection
+        id="projects"
+        category="Digital Products"
+        variant="product"
+        columns={3}
+        title="Featured Digital Products"
+        subtitle="Check out some of our recent work."
+        headerStyle="split"
+        viewAllHref="/digital-products"
+      />
 
       {/* Pages Section */}
       {/* <section id="pages" className="py-24 bg-white dark:bg-transparent">
@@ -155,13 +147,14 @@ export default function Home() {
         </div>
       </section> */}
 
-      {/* Blog Section */}
-      <section id="blog" className="py-24 bg-gray-50/50 dark:bg-black/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl mb-12 text-center">Latest Insights</h2>
-          <PageShowcase category="Blog" variant="readmore" columns={3} />
-        </div>
-      </section>
+      {/* Latest Insights — hidden entirely when no showcased posts */}
+      <ShowcaseSection
+        id="blog"
+        category="Blog"
+        variant="readmore"
+        columns={3}
+        title="Latest Insights"
+      />
 
       {/* Contact Section */}
       <section id="contact" className="py-24 bg-white dark:bg-transparent">

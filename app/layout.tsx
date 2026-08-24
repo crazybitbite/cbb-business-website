@@ -16,11 +16,19 @@ export const metadata: Metadata = {
 
 import { Providers } from "@/components/providers";
 
-export default function RootLayout({
+import { getNavigation } from "@/lib/navigation";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Resolve menus on the server so they render complete on first paint
+  const [headerNav, footerNav] = await Promise.all([
+    getNavigation("header"),
+    getNavigation("footer"),
+  ]);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -34,13 +42,13 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {/* <Scene /> */}
-            <Navbar />
+            <Navbar initialNavigation={headerNav} />
             <main className="flex-grow pt-16">
               <GlobalRailsWrapper>
                 {children}
               </GlobalRailsWrapper>
             </main>
-            <Footer />
+            <Footer initialNavigation={footerNav} />
           </ThemeProvider>
         </Providers>
       </body>

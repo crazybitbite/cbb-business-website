@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { slugify } from "@/lib/slugify"
 import { CategoryPagesBrowser } from "@/components/CategoryPagesBrowser"
 import { PageRenderer } from "@/components/PageRenderer"
+import { getPublishedPageBySlug } from "@/lib/pageData"
 
 export const dynamic = "force-dynamic"
 
@@ -35,18 +36,6 @@ async function resolveSubCategory(pathSegments: string[]) {
     return current
 }
 
-async function getPageBySlug(slugPath: string) {
-    try {
-        const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/pages/by-slug/${slugPath}`,
-            { cache: "no-store" }
-        )
-        if (!res.ok) return null
-        return await res.json()
-    } catch {
-        return null
-    }
-}
 
 export async function generateMetadata({ params }: { params: { path: string[] } }) {
     const sub = await resolveSubCategory(params.path)
@@ -56,7 +45,7 @@ export async function generateMetadata({ params }: { params: { path: string[] } 
             description: sub.description || `Browse our ${sub.name} digital products.`,
         }
     }
-    const page = await getPageBySlug(`digital-products/${params.path.join("/")}`)
+    const page = await getPublishedPageBySlug(`digital-products/${params.path.join("/")}`)
     return page
         ? { title: page.name, description: page.shortDescription || undefined }
         : { title: "Digital Products | Crazyfactors" }
@@ -88,8 +77,8 @@ export default async function DigitalProductsSubCategoryPage({ params }: { param
     }
 
     // Fall back to rendering a regular page with this slug
-    const page = await getPageBySlug(`digital-products/${params.path.join("/")}`)
+    const page = await getPublishedPageBySlug(`digital-products/${params.path.join("/")}`)
     if (!page) notFound()
 
-    return <PageRenderer page={page} />
+    return <PageRenderer page={page as any} />
 }
