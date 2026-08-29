@@ -17,7 +17,7 @@ export default function DigitalProductsPage() {
                     High-quality apps, templates, and tools for your next project.
                 </p>
             </div>
-            <CategoryPagesBrowser category="Digital Products" variant="product" columns={3} />
+            <CategoryPagesBrowser category="Digital Products" variant="product" columns={3} collapse="Courses" />
         </div>
     )
 }
