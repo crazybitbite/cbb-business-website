@@ -3,9 +3,11 @@ import { prisma } from "@/lib/prisma"
 import { slugify } from "@/lib/slugify"
 import { CategoryPagesBrowser } from "@/components/CategoryPagesBrowser"
 import { PageRenderer } from "@/components/PageRenderer"
-import { getPublishedPageBySlug } from "@/lib/pageData"
+import { getPublishedPageBySlug, getCoursesIndex, getCourseOverview } from "@/lib/pageData"
 import { ToolPageView } from "@/components/tools/ToolPageView"
 import { toolByKey } from "@/lib/toolRegistry"
+import { CoursesIndexView } from "@/components/courses/CoursesIndexView"
+import { CourseOverviewView } from "@/components/courses/CourseOverviewView"
 
 export const dynamic = "force-dynamic"
 
@@ -54,6 +56,28 @@ export async function generateMetadata({ params }: { params: { path: string[] } 
 }
 
 export default async function DigitalProductsSubCategoryPage({ params }: { params: { path: string[] } }) {
+    // Courses get a bespoke experience instead of the generic lesson listing:
+    //   /digital-products/courses            → one card per course
+    //   /digital-products/courses/<course>   → course overview + lesson sidebar
+    if (params.path[0] === "courses") {
+        if (params.path.length === 1) {
+            const courses = await getCoursesIndex()
+            return <CoursesIndexView courses={courses} />
+        }
+        if (params.path.length === 2) {
+            const overview = await getCourseOverview(params.path[1])
+            if (overview) {
+                const crumbItems = [
+                    { name: "Digital Products", href: "/digital-products" },
+                    { name: "Courses", href: "/digital-products/courses" },
+                    { name: overview.name, href: null },
+                ]
+                return <CourseOverviewView overview={overview} crumbItems={crumbItems} />
+            }
+        }
+        // length === 3 (a level) falls through to the generic listing below
+    }
+
     // Sub-category listing takes precedence over an individual page slug
     const sub = await resolveSubCategory(params.path)
 

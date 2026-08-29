@@ -45,3 +45,10 @@ body {
 .cbb-art-tips li svg { flex-shrink: 0; margin-top: 5px; }
 .cbb-art-tag { display: inline-block; margin: 0 8px 8px 0; padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #9ca3af; font-size: 13px; }
 @media (prefers-reduced-motion: reduce) { .cbb-art-lead, .cbb-art-toc, .cbb-art-sec { animation: none; } }
+
+/* Course lesson code blocks (inside .cbb-art) */
+.cbb-art pre { margin: 0 0 16px; padding: 16px 18px; border-radius: 14px; background: #0d1117; border: 1px solid rgba(255,255,255,0.1); overflow-x: auto; }
+.cbb-art pre code { color: #7ee787; font-size: 14px; line-height: 1.6; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: none; padding: 0; }
+.cbb-art .cbb-exercise { margin: 40px 0; padding: 22px 26px; border-radius: 18px; background: color-mix(in srgb, var(--a2) 8%, transparent); border: 1px solid color-mix(in srgb, var(--a2) 30%, transparent); }
+.cbb-art .cbb-exercise h3 { color: #fff; font-size: 17px; font-weight: 800; margin: 0 0 10px; }
+.cbb-art .cbb-exercise p { color: #e5e7eb; font-size: 15px; margin: 0; }

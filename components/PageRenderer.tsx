@@ -10,8 +10,11 @@ import { DownloadButton } from "@/components/DownloadButton"
 import { CurrencySelector } from "@/components/CurrencySelector"
 import { SideRail } from "@/components/SideRail"
 import { RelatedArticles } from "@/components/RelatedArticles"
+import { CourseSidebar, CoursePrevNext, type CourseOutlineData } from "@/components/CourseNav"
 import type { SideContent } from "@/lib/sideContent"
 import { effectivePrice } from "@/lib/pricing"
+
+export interface CrumbItem { name: string; href: string | null }
 
 export interface PageCta {
     enabled?: boolean
@@ -35,6 +38,7 @@ interface PageData {
     bannerImages: string[]
     category: string
     categoryBreadcrumb?: string[]
+    categoryBreadcrumbItems?: CrumbItem[]
     rootCategoryName?: string | null
     featured: boolean
     isPublished: boolean
@@ -42,24 +46,37 @@ interface PageData {
     downloadPlatforms?: string[]
     sideContent?: SideContent
     cta?: PageCta | null
+    courseOutline?: CourseOutlineData | null
 }
 
 interface PageRendererProps {
     page: PageData
 }
 
-function Breadcrumb({ crumbs }: { crumbs: string[] }) {
-    if (!crumbs.length) return null
+export function Breadcrumb({ crumbs, items }: { crumbs?: string[]; items?: CrumbItem[] }) {
+    // Prefer clickable items; fall back to plain names
+    const resolved: CrumbItem[] = items?.length
+        ? items
+        : (crumbs || []).map((name) => ({ name, href: null }))
+    if (!resolved.length) return null
+
     return (
         <nav className="flex items-center flex-wrap gap-1 text-sm text-gray-400 mb-2" aria-label="Breadcrumb">
-            {crumbs.map((crumb, idx) => (
-                <span key={idx} className="flex items-center gap-1">
-                    {idx > 0 && <ChevronRight className="h-3.5 w-3.5 text-gray-500" />}
-                    <span className={idx === crumbs.length - 1 ? "text-orange-400 font-medium" : ""}>
-                        {crumb}
+            {resolved.map((crumb, idx) => {
+                const isLast = idx === resolved.length - 1
+                return (
+                    <span key={idx} className="flex items-center gap-1">
+                        {idx > 0 && <ChevronRight className="h-3.5 w-3.5 text-gray-500" />}
+                        {crumb.href ? (
+                            <Link href={crumb.href} className={`hover:text-orange-400 transition-colors ${isLast ? "text-orange-400 font-medium" : ""}`}>
+                                {crumb.name}
+                            </Link>
+                        ) : (
+                            <span className={isLast ? "text-orange-400 font-medium" : ""}>{crumb.name}</span>
+                        )}
                     </span>
-                </span>
-            ))}
+                )
+            })}
         </nav>
     )
 }
@@ -104,6 +121,34 @@ export function PageRenderer({ page }: PageRendererProps) {
         setTimeout(() => setJustAdded(false), 2000)
     }
 
+    // Course lesson: dedicated layout with the course sidebar + prev/next
+    if (page.courseOutline) {
+        const outline = page.courseOutline
+        return (
+            <div className="min-h-screen bg-black text-white">
+                <div className="container mx-auto px-4 py-24">
+                    <div className="flex gap-8">
+                        <CourseSidebar outline={outline} />
+                        <div className="flex-1 min-w-0 max-w-3xl">
+                            <Breadcrumb crumbs={crumbs} items={page.categoryBreadcrumbItems} />
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="rounded-full bg-orange-500/15 text-orange-300 text-xs font-semibold px-3 py-1">
+                                    {outline.currentLevel} · Lesson {outline.lessonNumberInLevel}
+                                </span>
+                            </div>
+                            <h1 className="text-3xl sm:text-4xl font-bold mb-8">{page.name}</h1>
+                            <div
+                                className="prose prose-invert max-w-none"
+                                dangerouslySetInnerHTML={{ __html: page.description }}
+                            />
+                            <CoursePrevNext prev={outline.prev} next={outline.next} />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="min-h-screen bg-black text-white">
             {/* Rails sit in the outer side space; the middle keeps the standard
@@ -139,7 +184,7 @@ export function PageRenderer({ page }: PageRendererProps) {
                         <div className="sticky top-16 z-30 -mx-4 px-4 py-4 bg-black/85 backdrop-blur-md border-b border-white/10">
                             <div className="flex flex-wrap items-center justify-between gap-4">
                                 <div className="min-w-0">
-                                    <Breadcrumb crumbs={crumbs} />
+                                    <Breadcrumb crumbs={crumbs} items={page.categoryBreadcrumbItems} />
                                     <h1 className="text-2xl sm:text-3xl font-bold truncate">{page.name}</h1>
                                 </div>
 

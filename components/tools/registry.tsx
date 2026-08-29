@@ -24,4 +24,27 @@ export const TOOL_COMPONENTS: Record<string, ComponentType> = {
         })
     }),
     "post-data-receiver": dynamic(() => import("./PostDataReceiver")),
+    "html-beautifier": dynamic(() => import("./HtmlBeautifier")),
+    "sql-formatter": dynamic(() => import("./SqlFormatter")),
+    "regex-tester": dynamic(() => import("./RegexTester")),
+    "base64-encoder": dynamic(() => {
+        return import("./EncoderTool").then((m) => {
+            const C = m.default
+            return { default: () => <C mode="base64" /> }
+        })
+    }),
+    "url-encoder": dynamic(() => {
+        return import("./EncoderTool").then((m) => {
+            const C = m.default
+            return { default: () => <C mode="url" /> }
+        })
+    }),
+    "json-csv-converter": dynamic(() => import("./JsonCsvConverter")),
+    "epoch-converter": dynamic(() => import("./EpochConverter")),
+    "color-converter": dynamic(() => import("./ColorConverter")),
+    "uuid-generator": dynamic(() => import("./UuidGenerator")),
+    "password-generator": dynamic(() => import("./PasswordGenerator")),
+    "hash-generator": dynamic(() => import("./HashGenerator")),
+    "qr-generator": dynamic(() => import("./QrGenerator")),
+    "lorem-generator": dynamic(() => import("./LoremGenerator")),
 }
