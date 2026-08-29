@@ -9,6 +9,7 @@ import { CategoryDropdown } from "@/components/ui/CategoryDropdown"
 import { slugify, isValidSlug } from "@/lib/slugify"
 import { CURRENCIES } from "@/lib/currency"
 import { SideContentEditor } from "@/components/admin/SideContentEditor"
+import { TOOLS } from "@/lib/toolRegistry"
 import { EMPTY_SIDE_CONTENT, normalizeSideContent, type SideContent } from "@/lib/sideContent"
 
 const DOWNLOAD_PLATFORMS = [
@@ -44,6 +45,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
         showcaseOrder: "",
         downloadable: false,
         downloadPlatforms: [] as string[],
+        toolKey: "",
         modelUrl: "",
         downloadFileData: "",
         downloadFileName: "",
@@ -86,6 +88,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
                         showcaseOrder: pageData.showcaseOrder != null ? pageData.showcaseOrder.toString() : "",
                         downloadable: !!pageData.downloadable,
                         downloadPlatforms: pageData.downloadPlatforms || [],
+                        toolKey: pageData.toolKey || "",
                         modelUrl: pageData.modelUrl || "",
                         downloadFileData: "",
                         downloadFileName: "",
@@ -573,6 +576,45 @@ export default function EditPage({ params }: { params: { id: string } }) {
                                     className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
                                 />
                             </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="space-y-3 pt-2 rounded-xl border border-white/10 bg-white/5 p-4">
+                    <label className="text-sm font-semibold text-white">Interactive Tool</label>
+                    <p className="text-xs text-gray-500">Attach a built-in tool to this page. Access rules: a price above 0 makes it paid (purchase required); checked platforms require verified subscriptions; neither means free for everyone.</p>
+                    <select
+                        value={formData.toolKey}
+                        onChange={(e) => setFormData({ ...formData, toolKey: e.target.value })}
+                        className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-orange-500 focus:outline-none [&>option]:bg-gray-900"
+                    >
+                        <option value="">None — regular page</option>
+                        {TOOLS.map((t) => (
+                            <option key={t.key} value={t.key}>{t.label} — {t.description}</option>
+                        ))}
+                    </select>
+                    {formData.toolKey && (
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-300">Required subscriptions to use this tool</p>
+                            <div className="flex flex-wrap gap-4">
+                                {DOWNLOAD_PLATFORMS.map((p) => (
+                                    <label key={p.id} className="flex items-center gap-2 text-sm text-white cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.downloadPlatforms.includes(p.id)}
+                                            onChange={() => setFormData({
+                                                ...formData,
+                                                downloadPlatforms: formData.downloadPlatforms.includes(p.id)
+                                                    ? formData.downloadPlatforms.filter((id) => id !== p.id)
+                                                    : [...formData.downloadPlatforms, p.id]
+                                            })}
+                                            className="h-4 w-4 rounded accent-orange-600"
+                                        />
+                                        {p.label}
+                                    </label>
+                                ))}
+                            </div>
+                            <p className="text-xs text-gray-500">None checked + no price = tool is free to use.</p>
                         </div>
                     )}
                 </div>

@@ -114,6 +114,8 @@ model Page {
   seoTitle           String?
   seoDescription     String?
   seoKeywords        String?
+  // Key of a registered interactive tool (lib/toolRegistry) rendered on this page
+  toolKey            String?
   createdAt          BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
   updatedAt          BigInt?  @db.BigInt
   orderItems         OrderItem[]
@@ -195,6 +197,19 @@ model SubCategory {
   order             Int           @default(0)
   createdAt         BigInt        @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
   updatedAt         BigInt?       @db.BigInt
+}
+
+// Requests captured by the "POST Data Receiver" tool, grouped by bin token
+model PostBinRequest {
+  id        Int      @id @default(autoincrement())
+  token     String
+  method    String
+  headers   Json
+  body      String
+  ip        String?
+  createdAt BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+
+  @@index([token, createdAt])
 }
 
 model Settings {

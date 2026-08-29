@@ -67,7 +67,9 @@ export async function POST(req: Request) {
                 showcase: !!json.showcase,
                 showcaseOrder: json.showcaseOrder === "" || json.showcaseOrder == null ? null : parseInt(json.showcaseOrder),
                 downloadable: !!json.downloadable,
-                downloadPlatforms: json.downloadable && Array.isArray(json.downloadPlatforms) ? json.downloadPlatforms : [],
+                toolKey: json.toolKey || null,
+                // Platforms gate downloads AND tool usage — keep them when either applies
+                downloadPlatforms: (json.downloadable || json.toolKey) && Array.isArray(json.downloadPlatforms) ? json.downloadPlatforms : [],
                 modelUrl: json.modelUrl || null,
                 sideContent: json.sideContent ?? undefined,
                 cta: json.cta ?? undefined,
