@@ -4,6 +4,8 @@ import { slugify } from "@/lib/slugify"
 import { CategoryPagesBrowser } from "@/components/CategoryPagesBrowser"
 import { PageRenderer } from "@/components/PageRenderer"
 import { getPublishedPageBySlug } from "@/lib/pageData"
+import { ToolPageView } from "@/components/tools/ToolPageView"
+import { toolByKey } from "@/lib/toolRegistry"
 
 export const dynamic = "force-dynamic"
 
@@ -79,6 +81,11 @@ export default async function DigitalProductsSubCategoryPage({ params }: { param
     // Fall back to rendering a regular page with this slug
     const page = await getPublishedPageBySlug(`digital-products/${params.path.join("/")}`)
     if (!page) notFound()
+
+    // Pages with an attached tool render the gated tool experience
+    if (page.toolKey && toolByKey(page.toolKey)) {
+        return <ToolPageView page={page as any} />
+    }
 
     return <PageRenderer page={page as any} />
 }
