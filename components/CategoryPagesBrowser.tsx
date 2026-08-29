@@ -24,6 +24,8 @@ interface CategoryPagesBrowserProps {
      * /digital-products/mobile-apps. Dropdowns then only offer its children.
      */
     baseSubCategoryId?: number
+    /** Comma-separated sub-trees to collapse into one card per child (e.g. "Courses") */
+    collapse?: string
 }
 
 const GRID_COLS: Record<number, string> = {
@@ -32,7 +34,7 @@ const GRID_COLS: Record<number, string> = {
     4: "md:grid-cols-2 lg:grid-cols-4",
 }
 
-export function CategoryPagesBrowser({ category, variant = "readmore", columns = 3, baseSubCategoryId }: CategoryPagesBrowserProps) {
+export function CategoryPagesBrowser({ category, variant = "readmore", columns = 3, baseSubCategoryId, collapse }: CategoryPagesBrowserProps) {
     const [pages, setPages] = useState<BrowserPage[]>([])
     const [subCategories, setSubCategories] = useState<SubCategory[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -40,7 +42,8 @@ export function CategoryPagesBrowser({ category, variant = "readmore", columns =
     const [selections, setSelections] = useState<number[]>([])
 
     useEffect(() => {
-        fetch(`/api/pages/by-category?category=${encodeURIComponent(category)}`)
+        const collapseParam = collapse ? `&collapse=${encodeURIComponent(collapse)}` : ""
+        fetch(`/api/pages/by-category?category=${encodeURIComponent(category)}${collapseParam}`)
             .then((res) => (res.ok ? res.json() : { pages: [], subCategories: [] }))
             .then((data) => {
                 setPages(Array.isArray(data.pages) ? data.pages : [])
@@ -48,7 +51,7 @@ export function CategoryPagesBrowser({ category, variant = "readmore", columns =
             })
             .catch(() => { })
             .finally(() => setIsLoading(false))
-    }, [category])
+    }, [category, collapse])
 
     const childrenOf = useMemo(() => {
         const map = new Map<number | null, SubCategory[]>()

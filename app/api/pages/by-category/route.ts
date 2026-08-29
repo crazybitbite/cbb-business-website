@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextRequest, NextResponse } from "next/server"
 import { buildShadowedSlugs } from "@/lib/categoryPages"
+import { slugify } from "@/lib/slugify"
 
 export const dynamic = "force-dynamic"
 
@@ -24,11 +25,66 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ pages: [], subCategories: [] })
         }
 
-        const subCategories = await prisma.subCategory.findMany({
+        const allSubs = await prisma.subCategory.findMany({
             where: { categoryId: category.id },
             orderBy: { order: "asc" },
-            select: { id: true, name: true, parentSubCategoryId: true },
+            select: { id: true, name: true, description: true, parentSubCategoryId: true },
         })
+        let subCategories = allSubs.map(({ id, name, parentSubCategoryId }) => ({ id, name, parentSubCategoryId }))
+
+        // "collapse": a sub-tree (e.g. "Courses") whose deep pages are hidden and
+        // replaced by ONE card per direct child (each linking to its overview),
+        // while the sub-tree's root stays selectable in the dropdown.
+        const collapseNames = (req.nextUrl.searchParams.get("collapse") || "")
+            .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean)
+
+        const collapsedCards: any[] = []
+        const hiddenIds = new Set<number>()
+
+        for (const rootName of collapseNames) {
+            const root = allSubs.find((s) => s.parentSubCategoryId === null && s.name.toLowerCase() === rootName)
+            if (!root) continue
+
+            // Every descendant of the collapse root is hidden from the normal grid
+            const descendants = new Set<number>([root.id])
+            let grew = true
+            while (grew) {
+                grew = false
+                for (const s of allSubs) {
+                    if (s.parentSubCategoryId != null && descendants.has(s.parentSubCategoryId) && !descendants.has(s.id)) {
+                        descendants.add(s.id); grew = true
+                    }
+                }
+            }
+            descendants.forEach((id) => id !== root.id && hiddenIds.add(id))
+
+            // One synthetic card per direct child (the "course main page")
+            const children = allSubs.filter((s) => s.parentSubCategoryId === root.id)
+            const basePath = category.name.toLowerCase() === "digital products" ? "digital-products" : slugify(category.name)
+            for (const child of children) {
+                const levelIds = allSubs.filter((s) => s.parentSubCategoryId === child.id).map((s) => `sub-${s.id}`)
+                const firstLesson = levelIds.length
+                    ? await prisma.page.findFirst({
+                        where: { category: { in: levelIds }, isPublished: true },
+                        orderBy: [{ showcaseOrder: { sort: "asc", nulls: "last" } }, { name: "asc" }],
+                        select: { featuredImages: true },
+                    })
+                    : null
+                collapsedCards.push({
+                    id: -child.id, // negative to avoid clashing with real page ids
+                    name: child.name,
+                    slug: `${basePath}/${slugify(root.name)}/${slugify(child.name)}`,
+                    shortDescription: child.description,
+                    featuredImages: firstLesson?.featuredImages || [],
+                    price: null, currency: "USD", discountAmount: null, discountPercent: null,
+                    downloadable: false, downloadPlatforms: [],
+                    category: `sub-${root.id}`,
+                })
+            }
+        }
+
+        // Drop hidden (collapsed) sub-categories from the dropdown, keep the roots
+        subCategories = subCategories.filter((s) => !hiddenIds.has(s.id))
 
         const categoryValues = [
             `cat-${category.id}`,
@@ -65,7 +121,8 @@ export async function GET(req: NextRequest) {
         const shadowedSlugs = buildShadowedSlugs(category.name, subCategories)
         const visiblePages = pages.filter((p) => !shadowedSlugs.has(p.slug))
 
-        return NextResponse.json({ pages: visiblePages, subCategories })
+        // Prepend the synthetic "course main page" cards for any collapsed sub-tree
+        return NextResponse.json({ pages: [...collapsedCards, ...visiblePages], subCategories })
     } catch (error) {
         console.error("Error fetching pages by category:", error)
         return NextResponse.json({ error: "Failed to fetch pages" }, { status: 500 })
