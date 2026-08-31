@@ -13,9 +13,14 @@ import { QUANTUM } from "./courses/quantum.mjs"
 import { MARKETING } from "./courses/marketing.mjs"
 import { CYBERSECURITY } from "./courses/cybersecurity.mjs"
 import { FORENSICS } from "./courses/forensics.mjs"
+import { REACT } from "./courses/react.mjs"
+import { TYPESCRIPT } from "./courses/typescript.mjs"
+import { BOOTSTRAP } from "./courses/bootstrap.mjs"
+import { NODEJS } from "./courses/nodejs.mjs"
+import { HTML } from "./courses/html.mjs"
 
 const prisma = new PrismaClient()
-const COURSES = [PYTHON, JAVASCRIPT, QUANTUM, MARKETING, CYBERSECURITY, FORENSICS]
+const COURSES = [PYTHON, JAVASCRIPT, QUANTUM, MARKETING, CYBERSECURITY, FORENSICS, REACT, TYPESCRIPT, BOOTSTRAP, NODEJS, HTML]
 const LEVELS = ["Basic", "Intermediate", "Advanced"]
 
 const slugify = (t) => t.toLowerCase().trim().replace(/&/g, "and").replace(/\+\+/g, "pp").replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-")

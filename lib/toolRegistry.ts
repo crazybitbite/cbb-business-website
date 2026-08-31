@@ -35,6 +35,18 @@ export const TOOLS: ToolMeta[] = [
     { key: "hash-generator", label: "Hash Generator", description: "Compute SHA-1, SHA-256, SHA-384, and SHA-512 hashes" },
     { key: "qr-generator", label: "QR Code Generator", description: "Turn any text or URL into a downloadable QR code" },
     { key: "lorem-generator", label: "Lorem Ipsum Generator", description: "Generate placeholder paragraphs for designs and mockups" },
+    { key: "gradient-generator", label: "CSS Gradient Generator", description: "Design linear gradients and copy the CSS" },
+    { key: "box-shadow-generator", label: "Box Shadow Generator", description: "Build CSS box-shadows visually and copy the code" },
+    { key: "number-base-converter", label: "Number Base Converter", description: "Convert between binary, octal, decimal, and hexadecimal" },
+    { key: "unit-converter", label: "Unit Converter", description: "Convert length, weight, and data-size units" },
+    { key: "case-converter", label: "Case Converter", description: "Convert text between camelCase, snake_case, Title Case, and more" },
+    { key: "jwt-decoder", label: "JWT Decoder", description: "Decode a JWT's header and payload (no signature verification)" },
+    { key: "html-entities", label: "HTML Entities Encoder / Decoder", description: "Escape and unescape HTML entities" },
+    { key: "word-counter", label: "Word & Character Counter", description: "Count words, characters, sentences, and reading time" },
+    { key: "text-diff", label: "Text Diff Checker", description: "Compare two blocks of text line by line" },
+    { key: "markdown-previewer", label: "Markdown Previewer", description: "Write markdown and see it rendered live" },
+    { key: "slug-generator", label: "Slug Generator", description: "Turn any title into a clean URL slug" },
+    { key: "cron-parser", label: "Cron Expression Parser", description: "Explain and validate a cron schedule in plain English" },
 ]
 
 export const toolByKey = (key: string | null | undefined): ToolMeta | undefined =>

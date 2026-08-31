@@ -1,0 +1,245 @@
+export const NODEJS = {
+    name: "Node.js",
+    palette: ["#339933", "#22c55e"],
+    kw: "nodejs,server,backend",
+    images: ["1618477247222-acbdb0e159b3", "1558494949-ef010cbdcc31", "1544197150-b99a580bb7a8"],
+    levels: {
+        Basic: [
+            {
+                t: "What Node.js Is and Setup", s: "node-what-and-setup",
+                e: "Understand what Node.js is for and run your first program outside the browser.",
+                sec: [
+                    ["JavaScript on the server", "Node.js lets you run JavaScript outside the browser — on servers, your machine, build tools, and command-line programs. It's built on Chrome's V8 engine and adds capabilities browsers don't have: reading files, opening network servers, and accessing the operating system. The same language now spans front-end and back-end."],
+                    ["Installing Node and checking the version", "Install the LTS (long-term support) version from nodejs.org, which includes npm (the package manager). Verify from a terminal. LTS is the stable choice for real projects; the current release has the newest features.", "node --version\nnpm --version"],
+                    ["Running scripts and the REPL", "Run a file with `node file.js`, or start the REPL (an interactive prompt) by typing `node` to experiment line by line. Node executes your code top to bottom, just like a script.", '// hello.js\nconsole.log("Hello from Node.js");\nconsole.log("Args:", process.argv.slice(2));\n// run: node hello.js one two'],
+                ],
+                ex: "Install Node LTS, verify the version, and write a script that prints a greeting and any command-line arguments passed to it. Then open the REPL and evaluate a few expressions interactively.",
+                tips: ["Node runs JavaScript on servers and the command line", "Install LTS; it bundles npm", "Run files with `node file.js`; use the REPL to experiment"],
+            },
+            {
+                t: "Modules: CommonJS and ES Modules", s: "node-modules",
+                e: "Split code across files using Node's two module systems and know when to use each.",
+                sec: [
+                    ["CommonJS: require and module.exports", "Node's original module system uses require() to import and module.exports to export. Each file is its own module with private scope. You'll see this everywhere in existing code and many packages.", '// math.js\nfunction add(a, b) { return a + b; }\nmodule.exports = { add };\n\n// main.js\nconst { add } = require("./math");\nconsole.log(add(2, 3));'],
+                    ["ES Modules: import and export", "Modern Node supports standard ES modules (import/export), the same syntax as the browser. Enable them by setting \"type\": \"module\" in package.json or using the .mjs extension. New projects should prefer ESM.", '// math.mjs\nexport function add(a, b) { return a + b; }\n\n// main.mjs\nimport { add } from "./math.mjs";'],
+                    ["Built-in vs local vs package modules", "require/import resolve three kinds: core modules that ship with Node (no path — 'fs', 'path'), your own files (relative paths — './utils'), and installed packages (bare names — 'express') found in node_modules. Recognizing which is which clarifies every import."],
+                ],
+                ex: "Create a small project with two modules using ES modules (set type: module): one exporting utility functions, one importing and using them. Then rewrite the same pair using CommonJS to feel the difference.",
+                tips: ["CommonJS: require/module.exports (legacy, ubiquitous)", "ES Modules: import/export (modern, preferred) via type: module", "Imports resolve as core, local (./), or package (node_modules)"],
+            },
+            {
+                t: "npm and package.json", s: "node-npm-package-json",
+                e: "Manage dependencies and scripts — the backbone of every real Node project.",
+                sec: [
+                    ["Initializing a project", "npm init creates package.json, the manifest describing your project: its name, version, entry point, scripts, and dependencies. It's the single source of truth npm reads to install and run things.", "npm init -y        # creates package.json with defaults"],
+                    ["Installing packages", "npm install adds a package into node_modules and records it in package.json. Runtime dependencies go in \"dependencies\"; build/test tools go in \"devDependencies\" (--save-dev). The lockfile (package-lock.json) pins exact versions for reproducible installs.", 'npm install express            # dependency\nnpm install --save-dev vitest  # devDependency\nnpm install                    # install everything in package.json'],
+                    ["Scripts", "The \"scripts\" field defines commands you run with npm run — start the app, run tests, build. This standardizes project commands so anyone can npm run dev without knowing the details.", '"scripts": {\n  "start": "node server.js",\n  "dev": "node --watch server.js",\n  "test": "vitest"\n}'],
+                ],
+                ex: "Initialize a project with npm, install one dependency and one devDependency, and add start/dev/test scripts. Note what appears in package.json and node_modules, and why the lockfile matters.",
+                tips: ["package.json is the project manifest npm reads", "dependencies ship; devDependencies are build/test-only", "Define commands in scripts; run with npm run <name>"],
+            },
+            {
+                t: "Core Modules: Path, OS, and URL", s: "node-core-modules",
+                e: "Use Node's built-in toolkit for paths, system info, and URLs — no installs needed.",
+                sec: [
+                    ["The path module", "path handles file paths correctly across operating systems (Windows uses backslashes, Unix forward slashes). Use path.join and path.resolve instead of gluing strings, and helpers like basename, extname, and dirname to dissect paths.", 'import path from "node:path";\nconst full = path.join("uploads", "2024", "report.pdf");\nconsole.log(path.extname(full));   // .pdf\nconsole.log(path.basename(full));  // report.pdf'],
+                    ["OS and system info", "The os module exposes system details — platform, CPU count, free memory, home directory, temp directory — useful for tools, diagnostics, and choosing sensible defaults (like how many worker processes to spawn).", 'import os from "node:os";\nconsole.log(os.platform(), os.cpus().length, os.homedir());'],
+                    ["Parsing URLs", "The built-in URL class parses and builds URLs safely — reading the host, path, and query parameters without fragile string splitting. Essential for servers and HTTP clients.", 'const u = new URL("https://site.com/search?q=node&page=2");\nconsole.log(u.hostname);                 // site.com\nconsole.log(u.searchParams.get("q"));   // node'],
+                ],
+                ex: "Write a script that builds a cross-platform file path with path.join, prints the file's extension and directory, reports the CPU count and home directory via os, and parses a URL to extract a query parameter.",
+                tips: ["Use path.join/resolve — never glue path strings", "os exposes platform, CPUs, memory, and directories", "The URL class parses hosts, paths, and query params safely"],
+            },
+            {
+                t: "Reading and Writing Files", s: "node-file-system",
+                e: "Work with the file system — one of the core things Node can do that browsers cannot.",
+                sec: [
+                    ["The fs module and async by default", "The fs module reads and writes files. Prefer the promise-based API (fs/promises) with async/await — it doesn't block Node's single thread while the disk works, keeping your program responsive.", 'import { readFile, writeFile } from "node:fs/promises";\n\nawait writeFile("note.txt", "Hello file");\nconst text = await readFile("note.txt", "utf-8");\nconsole.log(text);'],
+                    ["Reading and writing structured data", "Combine fs with JSON to persist data: read a file, JSON.parse it, modify, JSON.stringify, and write it back. This is a simple, dependency-free way to store configuration and small datasets.", 'const raw = await readFile("data.json", "utf-8");\nconst data = JSON.parse(raw);\ndata.count++;\nawait writeFile("data.json", JSON.stringify(data, null, 2));'],
+                    ["Directories and existence checks", "fs also creates directories (mkdir with recursive), lists them (readdir), and reports file info (stat). Handle missing files by catching errors rather than pre-checking — the file could change between check and use.", 'import { mkdir, readdir } from "node:fs/promises";\nawait mkdir("output", { recursive: true });\nconst files = await readdir(".");\nconsole.log(files);'],
+                ],
+                ex: "Write a script that maintains a JSON file of visits: read it (creating it with a default if missing, via try/catch), increment a counter, and write it back formatted. Then list all files in the current directory.",
+                tips: ["Use fs/promises with async/await — non-blocking I/O", "fs + JSON.parse/stringify persists structured data simply", "Handle missing files with try/catch, not pre-checks"],
+            },
+            {
+                t: "Process, Environment, and CLI Basics", s: "node-process-env",
+                e: "Access runtime information, read configuration, and read command-line input.",
+                sec: [
+                    ["The process object", "process represents the running Node program: process.argv holds command-line arguments, process.exit() ends it with a status code, process.cwd() is the working directory, and process.platform tells you the OS. It's your window into the runtime.", 'console.log("Node version:", process.version);\nconsole.log("Args:", process.argv.slice(2));\nif (badInput) process.exit(1);   // non-zero = failure'],
+                    ["Environment variables", "Configuration and secrets belong in environment variables, read via process.env — never hardcoded in code. In development, a .env file (loaded by Node's --env-file flag or the dotenv package) sets them; in production, the host provides them.", 'const port = process.env.PORT || 3000;\nconst dbUrl = process.env.DATABASE_URL;\n// run: node --env-file=.env server.js'],
+                    ["Simple CLI programs", "Read process.argv to build command-line tools, or use process.stdin for interactive input. For richer CLIs, libraries like commander parse flags and generate help — but the built-ins cover simple scripts.", 'const [name] = process.argv.slice(2);\nif (!name) { console.error("Usage: greet <name>"); process.exit(1); }\nconsole.log(`Hello, ${name}!`);'],
+                ],
+                ex: "Build a small CLI that reads a name and an optional --shout flag from process.argv, reads a greeting template from an environment variable (with a default), and prints the result — exiting with an error code if no name is given.",
+                tips: ["process exposes argv, env, cwd, exit, and platform", "Config and secrets go in process.env, never in code", "Read process.argv for simple CLI tools; libraries for complex ones"],
+            },
+            {
+                t: "Events and the EventEmitter", s: "node-events-emitter",
+                e: "Understand Node's event-driven core and build components that emit and listen for events.",
+                sec: [
+                    ["Event-driven architecture", "Node is event-driven: much of its API (servers, streams, file watchers) works by emitting events you listen for. Understanding this pattern demystifies how Node handles many things at once on a single thread — it reacts to events as they occur."],
+                    ["Using EventEmitter", "The events module's EventEmitter lets your own objects emit named events and register listeners with .on(). It's the foundation many Node classes extend, and a clean way to decouple parts of your program.", 'import { EventEmitter } from "node:events";\nconst bus = new EventEmitter();\nbus.on("order", (id) => console.log("New order:", id));\nbus.emit("order", 42);   // logs: New order: 42'],
+                    ["Once, errors, and removing listeners", "Use .once() for one-time listeners, always handle the special 'error' event (an unhandled one crashes the process), and remove listeners with .off() to prevent leaks in long-running programs.", 'bus.once("ready", () => console.log("ready — fires once"));\nbus.on("error", (err) => console.error("handled:", err.message));'],
+                ],
+                ex: "Build a small order system: an EventEmitter that emits 'created' and 'shipped' events, listeners that react to each, a one-time 'startup' listener, and an error listener. Emit a sequence and observe the output.",
+                tips: ["Node's core APIs are event-driven — you listen for events", "EventEmitter: .emit to fire, .on to listen, decoupling code", "Use .once for one-shot; always handle the 'error' event"],
+            },
+            {
+                t: "Asynchronous Node: Callbacks to async/await", s: "node-async",
+                e: "Master the async model that makes Node fast — and write it in the clearest style.",
+                sec: [
+                    ["Why Node is asynchronous", "Node runs your JavaScript on one thread but offloads slow I/O (disk, network) to the system and continues working, handling results via the event loop. This is why Node handles thousands of connections efficiently — it never sits blocked waiting."],
+                    ["The evolution: callbacks → promises → async/await", "Older Node APIs used callbacks (a function called when done), which nest into 'callback hell'. Promises flatten this, and async/await makes async code read like synchronous code with try/catch. Prefer async/await and the promise-based APIs.", '// callback style (older)\nreadFile("f.txt", (err, data) => { if (err) throw err; use(data); });\n\n// async/await (modern)\ntry {\n    const data = await readFile("f.txt", "utf-8");\n    use(data);\n} catch (err) { handle(err); }'],
+                    ["Running work concurrently", "Independent async operations should run in parallel, not one after another. Promise.all awaits several at once; Promise.allSettled tolerates individual failures. Sequential await is only for dependent steps.", 'const [users, posts] = await Promise.all([\n    fetchUsers(),\n    fetchPosts(),\n]);   // both run concurrently'],
+                ],
+                ex: "Write a script that reads three files concurrently with Promise.all and reports their combined length, plus a version that reads them sequentially — and explain why the concurrent one finishes faster.",
+                tips: ["Node offloads I/O and reacts via the event loop — never blocks", "Prefer async/await + promise APIs over callbacks", "Promise.all for independent work; sequential await only when dependent"],
+            },
+        ],
+        Intermediate: [
+            {
+                t: "Building an HTTP Server", s: "node-http-server",
+                e: "Create a web server with Node's built-in http module to understand what frameworks do for you.",
+                sec: [
+                    ["The http module", "Node can be a web server with no dependencies. http.createServer takes a handler that runs for each request, giving you the request and a response to write. Understanding this raw layer makes frameworks like Express make sense.", 'import http from "node:http";\nconst server = http.createServer((req, res) => {\n    res.writeHead(200, { "Content-Type": "text/plain" });\n    res.end("Hello, world");\n});\nserver.listen(3000, () => console.log("http://localhost:3000"));'],
+                    ["Routing and methods by hand", "Without a framework, you inspect req.method and req.url to decide what to do — returning different responses for different paths and verbs. This quickly gets tedious, which is exactly why routing frameworks exist.", 'const server = http.createServer((req, res) => {\n    if (req.method === "GET" && req.url === "/") return res.end("Home");\n    if (req.url === "/api") { res.setHeader("Content-Type", "application/json"); return res.end(JSON.stringify({ ok: true })); }\n    res.writeHead(404); res.end("Not found");\n});'],
+                    ["Reading request bodies", "Request bodies arrive as streamed chunks you collect and parse. This manual work — buffering the body, parsing JSON, handling errors — is another thing frameworks automate, but seeing it once is illuminating.", 'let body = "";\nreq.on("data", chunk => body += chunk);\nreq.on("end", () => {\n    const data = JSON.parse(body || "{}");\n    res.end("Received " + Object.keys(data).length + " fields");\n});'],
+                ],
+                ex: "Build a raw HTTP server that serves a home page, returns JSON at /api, handles a POST to /echo by reading and echoing the request body, and returns 404 for anything else — all without a framework.",
+                tips: ["http.createServer + a handler is a full web server", "You route by inspecting req.method and req.url manually", "Request bodies stream in as chunks you collect and parse"],
+            },
+            {
+                t: "Express Fundamentals", s: "node-express-basics",
+                e: "Build web servers and APIs productively with the most popular Node framework.",
+                sec: [
+                    ["Why Express", "Express wraps the http module with clean routing, request/response helpers, and middleware — turning the tedious manual work of the previous lesson into a few readable lines. It's minimal and unopinionated, the default choice for Node web apps and APIs.", 'import express from "express";\nconst app = express();\napp.get("/", (req, res) => res.send("Home"));\napp.listen(3000, () => console.log("running"));'],
+                    ["Routing and parameters", "Express routes match a method and path to a handler. Route parameters (:id) capture URL segments (req.params), and query strings arrive in req.query. This declarative routing replaces the manual if/else chains.", 'app.get("/users/:id", (req, res) => {\n    res.json({ id: req.params.id, sort: req.query.sort });\n});\napp.post("/users", (req, res) => res.status(201).json({ created: true }));'],
+                    ["Responses", "Express response helpers make output easy: res.send for text/HTML, res.json for JSON (setting the header automatically), res.status to set the code, and res.redirect. Chain them for clear, correct responses.", 'res.status(404).json({ error: "Not found" });\nres.redirect("/login");'],
+                ],
+                ex: "Build an Express app with routes for a home page, GET /products (returns a JSON array), GET /products/:id (returns one or 404), and POST /products (returns 201). Test each with a browser or curl.",
+                tips: ["Express adds routing, helpers, and middleware over http", "Route params in req.params, query strings in req.query", "res.json/send/status/redirect make responses clean"],
+            },
+            {
+                t: "Middleware", s: "node-express-middleware",
+                e: "Understand Express's core concept — functions that process requests in a pipeline.",
+                sec: [
+                    ["What middleware is", "Middleware are functions that run in order for each request, each receiving req, res, and next. They can inspect or modify the request, respond, or pass control onward with next(). Routing, body parsing, logging, and auth are all middleware — it's Express's central idea.", 'app.use((req, res, next) => {\n    console.log(`${req.method} ${req.url}`);\n    next();   // pass to the next middleware/route\n});'],
+                    ["Built-in and third-party middleware", "Express and the ecosystem provide ready middleware: express.json() parses JSON bodies (essential for APIs), express.static() serves files, plus popular ones like cors and helmet for security. Register them with app.use before your routes.", 'app.use(express.json());              // parse JSON request bodies\napp.use(express.static("public"));    // serve static files\n// now req.body is populated on POST/PUT'],
+                    ["Order matters and scoped middleware", "Middleware runs in registration order, so put parsing and auth before the routes that need them. Middleware can be scoped to specific routes (app.use('/admin', requireAdmin)) or passed directly to a route, applying only there.", 'const requireAuth = (req, res, next) => {\n    if (!req.headers.authorization) return res.status(401).json({ error: "Unauthorized" });\n    next();\n};\napp.get("/profile", requireAuth, (req, res) => res.json({ ok: true }));'],
+                ],
+                ex: "Add middleware to an Express app: a logger for every request, express.json() for body parsing, and a requireAuth middleware applied to a protected route that checks for an Authorization header and returns 401 if missing.",
+                tips: ["Middleware runs per request with (req, res, next)", "express.json() parses bodies; static serves files", "Order matters; scope middleware to routes when needed"],
+            },
+            {
+                t: "Building a REST API", s: "node-rest-api",
+                e: "Design and implement a clean CRUD API following REST conventions.",
+                sec: [
+                    ["REST conventions", "REST maps HTTP methods to actions on resources: GET reads, POST creates, PUT/PATCH updates, DELETE removes. Use noun-based, plural paths (/tasks, /tasks/:id) and appropriate status codes (200, 201, 204, 400, 404). Consistency makes an API predictable and self-documenting."],
+                    ["Implementing CRUD", "A resource router implements all five operations. Keep handlers thin — validate input, do the work, return the right status and body. Here's the shape of a tasks API (using an in-memory array for illustration).", 'const router = express.Router();\nlet tasks = [];\nrouter.get("/", (req, res) => res.json(tasks));\nrouter.get("/:id", (req, res) => {\n    const t = tasks.find(t => t.id == req.params.id);\n    t ? res.json(t) : res.status(404).json({ error: "Not found" });\n});\nrouter.post("/", (req, res) => {\n    const task = { id: Date.now(), ...req.body };\n    tasks.push(task); res.status(201).json(task);\n});\napp.use("/tasks", router);'],
+                    ["Validation and status codes", "Validate request bodies before acting — reject bad input with 400 and a clear message. Return 201 with the created resource on POST, 204 with no body on successful DELETE, and 404 when a resource doesn't exist. Precise responses are part of a good API's contract."],
+                ],
+                ex: "Build a complete tasks REST API with an Express Router: list, get-one (404 if missing), create (validate a required title, 201), update (PATCH), and delete (204). Test every endpoint and status code with curl.",
+                tips: ["Map GET/POST/PUT/DELETE to read/create/update/remove", "Use plural noun paths and precise status codes", "Validate input; return 400/404/201/204 as appropriate"],
+            },
+            {
+                t: "Working with Databases", s: "node-databases",
+                e: "Persist data properly by connecting your Node app to a real database.",
+                sec: [
+                    ["Choosing a database and driver", "Move beyond in-memory arrays to a real database: relational (PostgreSQL, MySQL) for structured, related data with strong guarantees; document (MongoDB) for flexible schemas. You connect with a driver or, more commonly, an ORM/query builder that adds safety and convenience."],
+                    ["Using an ORM (Prisma)", "An ORM like Prisma maps your database to typed JavaScript objects: you define a schema, and it generates a client with autocomplete and safe queries — no hand-written SQL strings vulnerable to injection. This is how modern Node apps (including this website) talk to their database.", 'const user = await prisma.user.create({\n    data: { name: "Asha", email: "asha@mail.com" },\n});\nconst active = await prisma.user.findMany({ where: { isActive: true } });'],
+                    ["Connection management and safety", "Reuse a single database client/pool across your app rather than connecting per request. Always parameterize queries (ORMs do this for you) to prevent SQL injection, handle connection errors, and use transactions when multiple writes must succeed or fail together."],
+                ],
+                ex: "Connect an Express API to a database (SQLite or Postgres via Prisma or a query builder): define a schema for tasks, and rewire your REST API's CRUD handlers to read and write the database instead of an array.",
+                tips: ["Pick relational or document; use an ORM/query builder", "ORMs give typed, injection-safe queries (e.g. Prisma)", "Reuse one client/pool; parameterize queries; use transactions"],
+            },
+            {
+                t: "Error Handling and Validation", s: "node-error-handling",
+                e: "Build robust servers that fail gracefully and reject bad input clearly.",
+                sec: [
+                    ["Centralized error handling in Express", "Express recognizes error-handling middleware by its four arguments (err, req, res, next). Pass errors to next(err) from routes, and one central handler formats the response — so error logic isn't scattered across every route.", 'app.use((err, req, res, next) => {\n    console.error(err);\n    res.status(err.status || 500).json({ error: err.message || "Server error" });\n});'],
+                    ["Async errors", "Errors thrown in async route handlers won't be caught automatically in older Express — wrap handlers or use a helper (or Express 5, which handles async rejections). Always try/catch around awaited work and forward the error.", 'app.get("/x", async (req, res, next) => {\n    try {\n        const data = await risky();\n        res.json(data);\n    } catch (err) { next(err); }\n});'],
+                    ["Input validation", "Never trust incoming data. Validate request bodies and params with a schema library (Zod, Joi) and reject invalid input with 400 and clear messages, before it reaches your business logic or database. Validation is both a correctness and a security measure.", 'import { z } from "zod";\nconst TaskSchema = z.object({ title: z.string().min(1) });\nconst result = TaskSchema.safeParse(req.body);\nif (!result.success) return res.status(400).json({ error: result.error.issues });'],
+                ],
+                ex: "Add robust error handling to your tasks API: a central error-handling middleware, try/catch forwarding in async routes, and Zod validation on create/update that returns 400 with details for invalid input.",
+                tips: ["Centralize errors in Express's (err, req, res, next) middleware", "Wrap async handlers in try/catch and call next(err)", "Validate all input with a schema; reject with 400"],
+            },
+            {
+                t: "Authentication and Security", s: "node-auth-security",
+                e: "Protect your API with authentication and essential security practices.",
+                sec: [
+                    ["Passwords and hashing", "Never store passwords as plain text. Hash them with a slow, salted algorithm (bcrypt or argon2) so a database leak doesn't expose credentials. Compare the hash on login — you never decrypt a password, you re-hash and compare.", 'import bcrypt from "bcryptjs";\nconst hash = await bcrypt.hash(password, 10);   // store this\nconst ok = await bcrypt.compare(attempt, hash);  // verify on login'],
+                    ["Tokens and sessions (JWT)", "After verifying credentials, issue a signed token (JWT) the client sends on future requests in an Authorization header; middleware verifies it to authenticate each request. Alternatively, server sessions store state server-side with a session cookie. Both identify who's calling.", 'import jwt from "jsonwebtoken";\nconst token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: "1d" });\n// verify in middleware:\nconst payload = jwt.verify(token, process.env.JWT_SECRET);'],
+                    ["Security essentials", "Beyond auth: keep secrets in environment variables, use HTTPS, add security headers (helmet), enable CORS deliberately, rate-limit to blunt brute force, validate all input, and keep dependencies patched. Security is layered — no single measure suffices."],
+                ],
+                ex: "Add auth to your API: a register route that hashes the password, a login route that verifies it and returns a JWT, and middleware that protects task routes by verifying the token. Store the secret in an env var and add the helmet middleware.",
+                tips: ["Hash passwords with bcrypt/argon2 — never store plaintext", "Authenticate requests with signed JWTs or server sessions", "Layer security: env secrets, HTTPS, helmet, CORS, rate limits, patching"],
+            },
+        ],
+        Advanced: [
+            {
+                t: "Streams and Buffers", s: "node-streams-buffers",
+                e: "Process large data efficiently by working with it in chunks instead of all at once.",
+                sec: [
+                    ["Why streams matter", "Reading a 2GB file entirely into memory can crash your server; streaming processes it in small chunks with constant memory. Streams are one of Node's most powerful (and initially confusing) features — the key to handling large files, uploads, and real-time data at scale."],
+                    ["Reading and piping", "A readable stream emits data chunks; you can pipe it directly to a writable stream, letting Node manage flow and backpressure. Piping a file read to a file write copies a huge file with tiny memory use — no full buffer in RAM.", 'import { createReadStream, createWriteStream } from "node:fs";\ncreateReadStream("big.log")\n    .pipe(createWriteStream("copy.log"));\n// also: pipe a file straight to an HTTP response'],
+                    ["Buffers and transforms", "Buffers hold raw binary data (images, files, network packets) that strings can't represent. Transform streams process data as it flows — compressing, encrypting, or parsing chunk by chunk. This composability is why streams power so much of Node's I/O.", 'import { createGzip } from "node:zlib";\ncreateReadStream("big.log")\n    .pipe(createGzip())          // compress on the fly\n    .pipe(createWriteStream("big.log.gz"));'],
+                ],
+                ex: "Write a script that streams a large file through gzip compression to a new file using pipe, keeping memory low. Then stream a file directly to an HTTP response so clients download it without buffering it all in memory.",
+                tips: ["Streams process big data in chunks with constant memory", "pipe() connects readable→writable and manages backpressure", "Buffers hold binary data; transform streams process it in flight"],
+            },
+            {
+                t: "Real-Time with WebSockets", s: "node-websockets",
+                e: "Build live, bidirectional features — chat, notifications, and dashboards — with persistent connections.",
+                sec: [
+                    ["Beyond request/response", "HTTP is one-shot: the client asks, the server answers, done. Real-time features need the server to push data whenever it wants. WebSockets provide a persistent, two-way connection over which both sides send messages anytime — the basis of chat, live updates, and multiplayer."],
+                    ["A WebSocket server", "Libraries like ws (low-level) or Socket.IO (higher-level, with reconnection and rooms) make WebSocket servers straightforward. The server listens for connections and messages, and can broadcast to all clients.", 'import { WebSocketServer } from "ws";\nconst wss = new WebSocketServer({ port: 8080 });\nwss.on("connection", (socket) => {\n    socket.on("message", (msg) => {\n        // broadcast to everyone\n        wss.clients.forEach(c => c.send(msg.toString()));\n    });\n});'],
+                    ["Scaling real-time", "A single Node process holds connections in memory, so scaling across multiple servers needs a shared backplane (like Redis pub/sub) so a message on one server reaches clients on another. Socket.IO's adapter model handles this. Real-time architecture is a distinct discipline once you go beyond one process."],
+                ],
+                ex: "Build a minimal real-time chat: a WebSocket server that broadcasts each received message to all connected clients, and a simple HTML page that connects and sends/receives messages. Open two browser tabs to see live updates.",
+                tips: ["WebSockets add persistent, two-way, server-push messaging", "Use ws (low-level) or Socket.IO (rooms, reconnection)", "Scaling across servers needs a shared backplane like Redis"],
+            },
+            {
+                t: "Testing Node Applications", s: "node-testing",
+                e: "Write automated tests for logic and APIs so you can change code with confidence.",
+                sec: [
+                    ["Unit testing", "Unit tests check individual functions in isolation. Node has a built-in test runner (node:test), and popular tools (Vitest, Jest) offer more features. Structure tests by behavior, assert outcomes, and cover edge cases and errors.", 'import { test } from "node:test";\nimport assert from "node:assert";\nimport { add } from "./math.js";\n\ntest("add sums numbers", () => {\n    assert.strictEqual(add(2, 3), 5);\n});'],
+                    ["Testing APIs with supertest", "For Express apps, supertest sends requests to your app in-process and asserts on the responses — status, body, headers — without starting a real server or network. This tests your routing, middleware, and handlers end to end.", 'import request from "supertest";\nimport app from "./app.js";\n\ntest("GET /tasks returns 200", async () => {\n    const res = await request(app).get("/tasks");\n    assert.strictEqual(res.status, 200);\n});'],
+                    ["Mocking and test databases", "Isolate tests from slow or external dependencies: mock network calls, use a separate test database (reset between tests), and fake time or randomness. Fast, deterministic tests are ones you'll actually run — put them in CI so nothing broken merges."],
+                ],
+                ex: "Write tests for your tasks API: unit tests for a validation helper, and supertest integration tests covering list (200), create with valid and invalid bodies (201 and 400), and get-one missing (404). Run them in a CI-style script.",
+                tips: ["Unit-test logic with node:test/Vitest; cover edge cases", "supertest hits your Express app in-process for API tests", "Mock externals, use a test DB, and run tests in CI"],
+            },
+            {
+                t: "Performance, Clustering, and the Event Loop", s: "node-performance-clustering",
+                e: "Understand Node's performance model and scale a single-threaded runtime across cores.",
+                sec: [
+                    ["The event loop, precisely", "Node's single thread runs your JS and an event loop that schedules callbacks. It excels at I/O-bound work (waiting on network/disk) but a long CPU-bound task blocks everything — no other request is served meanwhile. Recognizing this is the key to Node performance."],
+                    ["Offloading CPU work", "For heavy computation (image processing, crypto, parsing), don't block the event loop. Use worker threads to run CPU work on separate threads, or offload to a queue/service. Keep the main thread free to handle requests.", 'import { Worker } from "node:worker_threads";\nconst worker = new Worker("./heavy-task.js", { workerData: input });\nworker.on("message", result => console.log(result));'],
+                    ["Clustering and scaling out", "One Node process uses one CPU core. The cluster module (or a process manager like PM2) forks multiple workers sharing a port to use all cores; beyond one machine, run multiple instances behind a load balancer. Combine with caching and monitoring for production scale.", 'import cluster from "node:cluster";\nimport os from "node:os";\nif (cluster.isPrimary) {\n    for (let i = 0; i < os.cpus().length; i++) cluster.fork();\n} else {\n    startServer();   // each worker runs the app\n}'],
+                ],
+                ex: "Write a route that does heavy CPU work and observe it blocking other requests. Fix it by moving the work to a worker thread. Then run your server under the cluster module and confirm it spawns one worker per CPU core.",
+                tips: ["Node shines at I/O; a CPU-bound task blocks the whole loop", "Offload heavy computation to worker threads", "cluster/PM2 use all cores; load-balance across machines"],
+            },
+            {
+                t: "Deployment and Production Operations", s: "node-deployment",
+                e: "Take a Node app from your laptop to a reliable production service.",
+                sec: [
+                    ["Preparing for production", "Set NODE_ENV=production, provide all config via environment variables, remove dev-only code, and ensure the app binds to the host-provided PORT. Use a process manager (PM2) or a platform that restarts crashed processes and runs multiple instances.", 'const port = process.env.PORT || 3000;\napp.listen(port);\n// pm2 start server.js -i max   # cluster across cores with auto-restart'],
+                    ["Containers and platforms", "A Dockerfile packages your app with its exact Node version and dependencies for consistent deploys anywhere. Managed platforms (Render, Railway, Fly, Vercel for serverless) handle much of the ops for you — build, run, scale, and TLS — so you focus on the app.", '# Dockerfile\nFROM node:20-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --omit=dev\nCOPY . .\nCMD ["node", "server.js"]'],
+                    ["Observability and reliability", "Production needs eyes: structured logging, error monitoring (Sentry), health-check endpoints, and metrics. Add graceful shutdown (finish in-flight requests on SIGTERM), keep dependencies patched, and back up data. Reliability is built from these operational habits, not any single tool."],
+                ],
+                ex: "Prepare a Node API for production: read PORT and all config from env, add a /health endpoint and graceful shutdown on SIGTERM, write a Dockerfile, and outline how you'd deploy it to a managed platform with auto-restart.",
+                tips: ["Production: NODE_ENV, env config, host PORT, a process manager", "Docker for reproducible deploys; platforms handle ops for you", "Add logging, error monitoring, health checks, and graceful shutdown"],
+            },
+            {
+                t: "Architecture and Best Practices", s: "node-architecture-best-practices",
+                e: "Structure larger Node applications to stay maintainable as they and your team grow.",
+                sec: [
+                    ["Layered structure", "As apps grow, separate concerns: routes/controllers (handle HTTP), services (business logic), and data-access (database). This layering keeps HTTP details out of business logic and makes code testable — you can test a service without an HTTP request. Organize by feature for large apps."],
+                    ["Configuration, logging, and dependency management", "Centralize configuration (validated env vars) in one module, use a structured logger (pino, winston) instead of console.log, and manage dependencies deliberately — fewer, well-maintained packages, kept patched. These reduce the operational drag that accumulates in real projects."],
+                    ["Async discipline and reliability patterns", "In production Node, unhandled promise rejections and uncaught exceptions can crash the process — handle them and let the process manager restart cleanly. Use timeouts on external calls, retries with backoff for transient failures, and circuit breakers for flaky dependencies. These patterns turn a working app into a resilient one."],
+                ],
+                ex: "Refactor your tasks API into layers: thin route handlers, a task service holding the logic, and a data-access module for the database. Add a validated config module and swap console.log for a structured logger.",
+                tips: ["Layer routes → services → data access; organize by feature", "Centralize/validate config; use a structured logger", "Handle rejections; add timeouts, retries, and graceful restarts"],
+            },
+        ],
+    },
+}
