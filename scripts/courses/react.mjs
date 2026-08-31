@@ -1,0 +1,278 @@
+export const REACT = {
+    name: "React",
+    palette: ["#61dafb", "#2563eb"],
+    kw: "react,javascript,web",
+    images: ["1633356122544-f134324a6cee", "1555066931-4365d14bab8c", "1579468118864-1b9ea3c0db4a"],
+    levels: {
+        Basic: [
+            {
+                t: "What React Is and Why It Exists", s: "react-what-and-why",
+                e: "Understand the problem React solves and get a project running in minutes with Vite.",
+                sec: [
+                    ["The core idea: UI as a function of state", "React is a JavaScript library for building user interfaces from small, reusable pieces called components. Its central insight: describe what the UI should look like for a given state, and let React figure out the DOM updates. You stop manually poking at elements (querySelector, textContent) and instead change data — React re-renders the affected pieces for you."],
+                    ["The virtual DOM, briefly", "When state changes, React builds a lightweight description of the new UI, compares it to the previous one (reconciliation), and applies only the minimal real-DOM changes. You get the simplicity of 'redraw everything' with performance close to hand-tuned updates — without writing the update logic yourself."],
+                    ["Create a project with Vite", "Vite is the fastest way to start. It scaffolds a project, runs a dev server with instant hot reload, and bundles for production. The React template gives you a working app in three commands.", "npm create vite@latest my-app -- --template react\ncd my-app\nnpm install\nnpm run dev"],
+                ],
+                ex: "Scaffold a React app with Vite, run the dev server, open it in the browser, and edit the text inside App.jsx — watch it hot-reload instantly. Note which file is the entry point and where App is rendered.",
+                tips: ["React renders UI from state — you change data, not the DOM", "The virtual DOM diffs and applies minimal updates", "Vite + the React template is the quickest modern setup"],
+            },
+            {
+                t: "JSX: HTML Inside JavaScript", s: "react-jsx",
+                e: "Learn the syntax React uses to describe UI — what's allowed, what's different from HTML, and why.",
+                sec: [
+                    ["JSX is JavaScript, not a template", "JSX looks like HTML but compiles to plain function calls that create elements. Because it's JavaScript, you embed any expression with curly braces — variables, function calls, ternaries. It must return a single root element (or a Fragment) per component.", 'const name = "Asha";\nconst element = <h1>Hello, {name.toUpperCase()}!</h1>;\nconst sum = <p>2 + 2 = {2 + 2}</p>;'],
+                    ["Attributes differ from HTML", "Because JSX is JS, some attribute names change to avoid reserved words: class becomes className, for becomes htmlFor, and event handlers are camelCase (onClick, onChange). Styles take an object, not a string. Self-close every tag.", 'const box = (\n    <div className="card" style={{ padding: 16, color: "white" }}>\n        <img src="/logo.png" alt="Logo" />\n    </div>\n);'],
+                    ["Fragments and expressions vs statements", "To return multiple elements without an extra wrapper div, use a Fragment (<>...</>). Remember JSX embeds expressions (things that produce a value) — you can't put an if statement or a for loop directly inside braces; use ternaries and array methods instead.", 'function Info({ user }) {\n    return (\n        <>\n            <h2>{user.name}</h2>\n            {user.admin ? <span>Admin</span> : <span>Member</span>}\n        </>\n    );\n}'],
+                ],
+                ex: "Write a component that declares a few variables (name, age, a boolean isOnline) and renders them in JSX using an expression for each, camelCased attributes, an inline style object, and a Fragment to avoid a wrapper div.",
+                tips: ["JSX compiles to createElement calls — it's JavaScript", "className, htmlFor, camelCase events; style takes an object", "Embed expressions with {}; use ternaries/maps, not if/for"],
+            },
+            {
+                t: "Components and Props", s: "react-components-props",
+                e: "Build UIs by composing small components and passing data down through props.",
+                sec: [
+                    ["Function components", "A component is a JavaScript function that returns JSX. Its name must start with a capital letter so React tells it apart from HTML tags. You compose an app by nesting components, each responsible for one piece of the interface.", 'function Welcome() {\n    return <h1>Welcome to the app</h1>;\n}\n\nfunction App() {\n    return (\n        <div>\n            <Welcome />\n            <Welcome />\n        </div>\n    );\n}'],
+                    ["Props: passing data in", "Props are the inputs to a component — passed like HTML attributes and received as a single object argument. Destructure them for clarity. Props are read-only: a component must never modify its own props; data flows one way, from parent to child.", 'function Greeting({ name, role = "guest" }) {\n    return <p>Hi {name}, you are a {role}.</p>;\n}\n\n<Greeting name="Ravi" role="admin" />\n<Greeting name="Asha" />   // role defaults to "guest"'],
+                    ["Children and composition", "The special children prop holds whatever you nest between a component's tags, letting you build flexible wrappers like cards, layouts, and modals. Composition — small components combined — is React's answer to reuse, preferred over inheritance.", 'function Card({ title, children }) {\n    return (\n        <div className="card">\n            <h3>{title}</h3>\n            {children}\n        </div>\n    );\n}\n\n<Card title="Profile"><p>Some content</p></Card>'],
+                ],
+                ex: "Build a Card component that takes a title prop and children, and a Button component that takes a label prop with a default. Compose them: render three Cards, each containing a Button, from an App component.",
+                tips: ["Components are capitalized functions returning JSX", "Props flow parent → child and are read-only", "children + composition is how you build reusable wrappers"],
+            },
+            {
+                t: "State with useState", s: "react-usestate",
+                e: "Make components interactive by giving them memory that triggers re-renders when it changes.",
+                sec: [
+                    ["Declaring state", "Props come from outside; state is data a component owns and can change over time. The useState hook returns the current value and a setter function. Calling the setter schedules a re-render with the new value — that's how the UI stays in sync with data.", 'import { useState } from "react";\n\nfunction Counter() {\n    const [count, setCount] = useState(0);\n    return <button onClick={() => setCount(count + 1)}>Clicked {count} times</button>;\n}'],
+                    ["State is a snapshot; update from previous", "Each render sees its own value of state. When the next value depends on the current one, pass a function to the setter so React gives you the latest value — essential when updating multiple times or inside async code.", 'setCount(prev => prev + 1);   // safe even if called several times\n\n// objects/arrays: replace, never mutate\nsetUser(prev => ({ ...prev, name: "New" }));\nsetItems(prev => [...prev, newItem]);'],
+                    ["Rules of hooks", "Hooks (functions starting with 'use') must be called at the top level of a component — never inside conditions, loops, or nested functions — so React can match each hook to its state across renders. Only call them from components or other hooks.", 'function Toggle() {\n    const [on, setOn] = useState(false);\n    return <button onClick={() => setOn(o => !o)}>{on ? "ON" : "OFF"}</button>;\n}'],
+                ],
+                ex: "Build a small counter with increment, decrement, and reset buttons using the functional updater form. Then add a second piece of state (a step size) and make the buttons change count by that step.",
+                tips: ["useState gives [value, setter]; setting re-renders", "Update from prev when the new value depends on the old", "Call hooks at the top level, unconditionally"],
+            },
+            {
+                t: "Handling Events", s: "react-events",
+                e: "Respond to clicks, typing, submits, and more with React's event system.",
+                sec: [
+                    ["Attaching handlers", "Pass a function to camelCased event props like onClick or onChange. Pass the function reference, don't call it — onClick={handleClick}, not onClick={handleClick()}. Use an arrow function when you need to pass arguments.", 'function Buttons() {\n    const greet = () => alert("Hi!");\n    return (\n        <>\n            <button onClick={greet}>Greet</button>\n            <button onClick={() => console.log("id", 42)}>Log id</button>\n        </>\n    );\n}'],
+                    ["The event object", "Handlers receive a synthetic event — React's cross-browser wrapper around the native one. Use it for event.target.value on inputs, event.preventDefault() to stop default behavior (like form navigation), and event.key on keyboard events.", 'function Search() {\n    const onKey = (e) => {\n        if (e.key === "Enter") console.log("search:", e.target.value);\n    };\n    return <input onKeyDown={onKey} placeholder="Type and press Enter" />;\n}'],
+                    ["Passing data to handlers", "To hand a value to a handler, wrap it in an arrow function so it only runs on the event, not during render. This is the standard pattern for list items, delete buttons, and anything parameterized.", 'const items = ["a", "b", "c"];\n<ul>\n    {items.map((item) => (\n        <li key={item}>\n            {item} <button onClick={() => remove(item)}>x</button>\n        </li>\n    ))}\n</ul>'],
+                ],
+                ex: "Build a component with a text input and a button. Log the input's value when the button is clicked or when Enter is pressed in the field, using the event object for both.",
+                tips: ["Pass the function, don't call it: onClick={fn}", "Use the synthetic event for value, preventDefault, key", "Wrap in an arrow to pass arguments to a handler"],
+            },
+            {
+                t: "Conditional Rendering", s: "react-conditional-rendering",
+                e: "Show, hide, and swap UI based on state and props using JavaScript expressions.",
+                sec: [
+                    ["Ternary and && ", "Since JSX embeds expressions, you render conditionally with the ternary operator for either/or, and the && operator to render something only when a condition is true. Beware && with numbers — 0 renders as '0'; convert to a real boolean.", 'function Status({ user }) {\n    return (\n        <div>\n            {user ? <span>Welcome, {user.name}</span> : <a href="/login">Log in</a>}\n            {user?.messages > 0 && <p>You have {user.messages} messages</p>}\n        </div>\n    );\n}'],
+                    ["Early returns and variables", "For larger branches, compute JSX into a variable or return early from the component. This keeps the main return readable instead of deeply nested ternaries.", 'function Page({ loading, error, data }) {\n    if (loading) return <Spinner />;\n    if (error) return <Error message={error} />;\n    return <List items={data} />;\n}'],
+                    ["Rendering nothing", "Returning null renders nothing — useful for components that sometimes shouldn't appear at all, like a banner that's dismissed or a modal that's closed.", 'function Banner({ show, children }) {\n    if (!show) return null;\n    return <div className="banner">{children}</div>;\n}'],
+                ],
+                ex: "Build a component that takes loading, error, and data props and renders a spinner, an error message, an empty state, or a list accordingly — using early returns for the first three cases.",
+                tips: ["Ternary for either/or; && for show-if-true", "Guard && against 0 and empty strings", "Return null to render nothing; early-return for clarity"],
+            },
+            {
+                t: "Lists and Keys", s: "react-lists-keys",
+                e: "Render collections of data and understand why keys matter for correctness and performance.",
+                sec: [
+                    ["Rendering arrays with map", "To render a list, map each data item to a JSX element. React accepts arrays of elements directly, so map is the idiomatic loop. Keep the mapping function small; extract a component when items get complex.", 'const products = [{ id: 1, name: "Pen" }, { id: 2, name: "Book" }];\n<ul>\n    {products.map((p) => <li key={p.id}>{p.name}</li>)}\n</ul>'],
+                    ["Why keys are required", "React needs a stable, unique key per list item to track which is which across re-renders — so it can reorder, insert, and remove efficiently and preserve each item's state. Use a stable id from your data.", "// good: stable id\nitems.map(i => <Row key={i.id} item={i} />)"],
+                    ["Never use the index as a key (usually)", "Using the array index as a key breaks when items are reordered, inserted, or removed — state and DOM can attach to the wrong item, causing subtle bugs. Only fall back to the index for a static list that never changes order.", "// avoid when the list can change:\nitems.map((i, index) => <Row key={index} item={i} />)"],
+                ],
+                ex: "Given an array of user objects (id, name, online), render them as a list where online users show a green dot. Then add a button that removes a user, confirming with stable id keys that the right one disappears.",
+                tips: ["map data to elements to render lists", "Every list item needs a stable, unique key", "Avoid index keys for lists that can reorder or change"],
+            },
+            {
+                t: "Forms and Controlled Inputs", s: "react-forms",
+                e: "Capture and validate user input with controlled components — React's model for forms.",
+                sec: [
+                    ["Controlled inputs", "In a controlled input, React state is the single source of truth: the input's value comes from state, and onChange updates that state. This lets you read, validate, and transform input as the user types.", 'function NameForm() {\n    const [name, setName] = useState("");\n    return (\n        <input value={name} onChange={(e) => setName(e.target.value)} />\n    );\n}'],
+                    ["Multiple fields with one handler", "For forms with many fields, hold an object in state and key updates by the input's name attribute — one handler for the whole form.", 'const [form, setForm] = useState({ email: "", password: "" });\nconst update = (e) =>\n    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));\n\n<input name="email" value={form.email} onChange={update} />\n<input name="password" value={form.password} onChange={update} />'],
+                    ["Submitting and validating", "Handle onSubmit on the form element, call preventDefault to stop a page reload, then validate and act. Derive validation from state so error messages update live as the user corrects them.", 'function Login() {\n    const [email, setEmail] = useState("");\n    const valid = /.+@.+\\..+/.test(email);\n    const submit = (e) => { e.preventDefault(); if (valid) console.log(email); };\n    return (\n        <form onSubmit={submit}>\n            <input value={email} onChange={(e) => setEmail(e.target.value)} />\n            {!valid && email && <small>Enter a valid email</small>}\n            <button disabled={!valid}>Sign in</button>\n        </form>\n    );\n}'],
+                ],
+                ex: "Build a sign-up form with name, email, and password as controlled inputs stored in one state object. Show inline validation (name required, valid email, password ≥ 6 chars) and disable submit until all pass.",
+                tips: ["Controlled input: value from state, onChange updates state", "Use name + [computed key] for many fields, one handler", "onSubmit + preventDefault; derive validation from state"],
+            },
+        ],
+        Intermediate: [
+            {
+                t: "Side Effects with useEffect", s: "react-useeffect",
+                e: "Synchronize your components with the outside world — timers, subscriptions, and the DOM.",
+                sec: [
+                    ["What effects are for", "Rendering should be pure — no network calls, timers, or DOM mutations during render. useEffect runs code after render, for synchronizing with external systems. It takes a function and a dependency array that controls when it re-runs.", 'import { useEffect, useState } from "react";\n\nfunction Clock() {\n    const [now, setNow] = useState(new Date());\n    useEffect(() => {\n        const id = setInterval(() => setNow(new Date()), 1000);\n        return () => clearInterval(id);   // cleanup\n    }, []);   // run once on mount\n    return <p>{now.toLocaleTimeString()}</p>;\n}'],
+                    ["The dependency array", "An empty array runs the effect once after mount. Listing values runs it whenever they change. Omitting the array runs it after every render (rarely wanted). Include every reactive value the effect uses — the linter's exhaustive-deps rule catches omissions that cause stale bugs."],
+                    ["Cleanup", "Return a function from the effect to clean up: clear intervals, remove listeners, cancel subscriptions. React runs cleanup before the next effect and on unmount. Forgetting cleanup is the most common source of memory leaks and duplicate subscriptions.", 'useEffect(() => {\n    const onResize = () => console.log(window.innerWidth);\n    window.addEventListener("resize", onResize);\n    return () => window.removeEventListener("resize", onResize);\n}, []);'],
+                ],
+                ex: "Build a component that starts a countdown from a number prop, updating every second and stopping at zero. Ensure the interval is cleaned up on unmount and restarts correctly if the prop changes.",
+                tips: ["Effects run after render, for external synchronization", "List every reactive value in the dependency array", "Return a cleanup function to prevent leaks"],
+            },
+            {
+                t: "Fetching Data", s: "react-data-fetching",
+                e: "Load data from APIs the right way — with loading, error, and cancellation handled.",
+                sec: [
+                    ["Fetch inside an effect", "Data loading is a side effect, so it belongs in useEffect. Track three states — loading, data, and error — so the UI can reflect each. Define an async function inside the effect (the effect callback itself can't be async).", 'function User({ id }) {\n    const [data, setData] = useState(null);\n    const [error, setError] = useState(null);\n    useEffect(() => {\n        fetch(`/api/users/${id}`)\n            .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })\n            .then(setData)\n            .catch(setError);\n    }, [id]);\n    if (error) return <p>Failed to load</p>;\n    if (!data) return <p>Loading…</p>;\n    return <h2>{data.name}</h2>;\n}'],
+                    ["Avoiding race conditions", "If the id changes quickly, an older request can resolve after a newer one and overwrite it. Guard with a flag (or an AbortController) in cleanup so stale responses are ignored.", 'useEffect(() => {\n    let active = true;\n    fetch(`/api/users/${id}`).then(r => r.json()).then(d => {\n        if (active) setData(d);\n    });\n    return () => { active = false; };\n}, [id]);'],
+                    ["When to reach for a library", "Manual fetching is fine for simple cases, but caching, refetching, deduping, and background updates get complex fast. Libraries like TanStack Query handle all of it — covered in the Advanced level. Know the manual version first so you understand what they automate."],
+                ],
+                ex: "Build a component that fetches a list from a public API (e.g. JSONPlaceholder) with loading, error, and empty states, and a race-condition guard. Add a refresh button that re-runs the fetch.",
+                tips: ["Fetch in an effect; track loading/data/error", "Guard against out-of-order responses in cleanup", "Reach for a data library when caching/refetching grows"],
+            },
+            {
+                t: "Sharing State: Lifting and Composition", s: "react-lifting-state",
+                e: "Coordinate multiple components by lifting shared state to their common parent.",
+                sec: [
+                    ["Lifting state up", "When two components need the same data, move that state to their nearest common ancestor and pass it down as props, with callbacks to change it. This keeps a single source of truth and makes data flow predictable.", 'function Parent() {\n    const [query, setQuery] = useState("");\n    return (\n        <>\n            <SearchBox value={query} onChange={setQuery} />\n            <Results query={query} />\n        </>\n    );\n}'],
+                    ["Prop drilling and its limits", "Passing props through many intermediate layers ('prop drilling') becomes tedious and couples components that don't use the data. It's fine for a few levels; when it hurts, Context (next lesson) or a state library is the answer."],
+                    ["Composition to avoid drilling", "Often you don't need Context — passing components as props (including children) lets a parent inject content deep without every layer forwarding props. This pattern solves a surprising amount of drilling.", 'function Layout({ sidebar, children }) {\n    return <div className="grid"><aside>{sidebar}</aside><main>{children}</main></div>;\n}\n<Layout sidebar={<Nav user={user} />}><Dashboard /></Layout>'],
+                ],
+                ex: "Build a temperature converter with two inputs (Celsius and Fahrenheit) that stay in sync. Lift the shared temperature to a parent so editing either input updates the other.",
+                tips: ["Lift shared state to the nearest common parent", "One source of truth; pass data down, callbacks up", "Use composition (children/slots) to avoid prop drilling"],
+            },
+            {
+                t: "Context for Global Data", s: "react-context",
+                e: "Provide data to a whole subtree without threading props through every level.",
+                sec: [
+                    ["Creating and providing context", "Context lets a provider expose a value to all descendants, which read it with useContext — no prop drilling. Ideal for app-wide data: current user, theme, language, or a small global store.", 'import { createContext, useContext, useState } from "react";\n\nconst ThemeContext = createContext("light");\n\nfunction App() {\n    const [theme, setTheme] = useState("dark");\n    return (\n        <ThemeContext.Provider value={{ theme, setTheme }}>\n            <Toolbar />\n        </ThemeContext.Provider>\n    );\n}'],
+                    ["Consuming context", "Any descendant reads the nearest provider's value with useContext. Wrap it in a custom hook for a clean API and to throw a helpful error if used outside the provider.", 'function useTheme() {\n    const ctx = useContext(ThemeContext);\n    if (!ctx) throw new Error("useTheme must be inside ThemeContext.Provider");\n    return ctx;\n}\n\nfunction Toolbar() {\n    const { theme, setTheme } = useTheme();\n    return <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme}</button>;\n}'],
+                    ["Context is not a performance tool", "Every consumer re-renders when the context value changes, so don't put rapidly-changing state in one giant context. Split contexts by concern, and memoize the provider value. For complex global state, pair context with useReducer or a dedicated library."],
+                ],
+                ex: "Build a theme system: a ThemeProvider holding 'light'/'dark' state, a useTheme hook, and two unrelated components — a toggle button and a themed panel — that both read the context without prop drilling.",
+                tips: ["Context provides a value to an entire subtree", "Wrap useContext in a custom hook with a guard", "Split contexts by concern; memoize the value"],
+            },
+            {
+                t: "Refs and the DOM with useRef", s: "react-useref",
+                e: "Reach imperative escape hatches: focus inputs, measure elements, and hold mutable values.",
+                sec: [
+                    ["Accessing DOM nodes", "Sometimes you need the real DOM element — to focus an input, scroll, measure size, or integrate a non-React library. Create a ref with useRef and attach it via the ref attribute; access the node through ref.current after mount.", 'function SearchBox() {\n    const inputRef = useRef(null);\n    useEffect(() => { inputRef.current.focus(); }, []);\n    return <input ref={inputRef} placeholder="Auto-focused" />;\n}'],
+                    ["Refs for mutable values", "A ref is a box whose .current you can read and write without triggering a re-render — perfect for values that persist across renders but shouldn't cause one, like a timer id, a previous value, or a mutable counter.", 'const renderCount = useRef(0);\nrenderCount.current++;   // survives renders, no re-render triggered'],
+                    ["Refs vs state", "Use state when a change should update the UI; use a ref when it shouldn't. Changing a ref never re-renders. Don't read or write ref.current during render (except lazy init) — do it in effects and handlers."],
+                ],
+                ex: "Build a stopwatch with Start/Stop/Reset. Store the interval id in a ref (not state), keep the elapsed time in state, and add a button that focuses a 'label' input using a DOM ref.",
+                tips: ["useRef + ref attribute gives you the DOM node", "Refs hold mutable values without causing re-renders", "State for UI-affecting changes; refs for the rest"],
+            },
+            {
+                t: "Complex State with useReducer", s: "react-usereducer",
+                e: "Manage interrelated state transitions predictably when useState gets unwieldy.",
+                sec: [
+                    ["When useState isn't enough", "When multiple pieces of state change together, or the next state depends on complex logic, useReducer centralizes it. You dispatch described actions, and a pure reducer function computes the next state — the same pattern as Redux, built in.", 'function reducer(state, action) {\n    switch (action.type) {\n        case "increment": return { count: state.count + 1 };\n        case "reset": return { count: 0 };\n        default: return state;\n    }\n}\n\nconst [state, dispatch] = useReducer(reducer, { count: 0 });\n<button onClick={() => dispatch({ type: "increment" })}>+</button>'],
+                    ["Actions describe intent", "Dispatching { type: 'addItem', item } reads as what happened, not how state changes — the reducer decides that in one place. This makes complex flows (forms, wizards, carts) far easier to reason about and test, since the reducer is a pure function."],
+                    ["Reducer + Context = a mini store", "Combine useReducer with Context to give a whole app a shared, structured store without a library: the provider holds state and dispatch, components read what they need. Reach for a dedicated library only when this genuinely outgrows itself."],
+                ],
+                ex: "Build a todo app with useReducer handling add, toggle, and delete actions on an array of todos. Then expose state and dispatch through Context so a separate 'stats' component can read the counts.",
+                tips: ["useReducer centralizes complex state transitions", "Actions describe intent; the reducer computes the next state", "Reducer + Context is a built-in mini state store"],
+            },
+            {
+                t: "Custom Hooks", s: "react-custom-hooks",
+                e: "Extract and reuse stateful logic by writing your own hooks — React's primary abstraction tool.",
+                sec: [
+                    ["Why custom hooks", "When two components share logic (not UI) — fetching, form handling, subscriptions — extract it into a function named use... that calls other hooks. It's just a function; the naming convention lets React apply the rules of hooks and lets you reuse logic without duplicating it.", 'function useToggle(initial = false) {\n    const [on, setOn] = useState(initial);\n    const toggle = () => setOn(o => !o);\n    return [on, toggle];\n}\n\nfunction Panel() {\n    const [open, toggle] = useToggle();\n    return <button onClick={toggle}>{open ? "Hide" : "Show"}</button>;\n}'],
+                    ["A data-fetching hook", "Custom hooks shine for encapsulating effects. A useFetch hook packages the loading/data/error dance so components stay clean, and every consumer gets the same robust behavior.", 'function useFetch(url) {\n    const [state, setState] = useState({ loading: true });\n    useEffect(() => {\n        let active = true;\n        fetch(url).then(r => r.json())\n            .then(data => active && setState({ loading: false, data }))\n            .catch(error => active && setState({ loading: false, error }));\n        return () => { active = false; };\n    }, [url]);\n    return state;\n}'],
+                    ["Each call is isolated", "Two components (or two calls in one component) using the same hook get independent state — hooks share logic, not state. Compose custom hooks from other custom hooks to build up capability cleanly."],
+                ],
+                ex: "Write a useLocalStorage(key, initial) hook that reads/writes a value to localStorage and keeps it in state, so components can persist a setting in one line. Use it to remember a 'dark mode' toggle.",
+                tips: ["Custom hooks reuse stateful logic, not markup", "Name them use... so the rules of hooks apply", "Each call gets isolated state; compose hooks freely"],
+            },
+            {
+                t: "Rendering Behavior and Performance", s: "react-performance",
+                e: "Understand when components re-render and how to optimize only when measurements say so.",
+                sec: [
+                    ["What causes re-renders", "A component re-renders when its state changes, its parent re-renders, or its context value changes. Re-rendering is usually cheap — React is fast — so don't optimize prematurely. Profile with the React DevTools Profiler before changing anything."],
+                    ["memo, useMemo, useCallback", "React.memo skips re-rendering a component when its props are unchanged. useMemo caches an expensive computed value; useCallback caches a function identity so memoized children don't re-render needlessly. All three are targeted tools, not defaults.", 'const Row = React.memo(function Row({ item }) { /* ... */ });\n\nconst sorted = useMemo(() => expensiveSort(items), [items]);\nconst onSelect = useCallback((id) => setSelected(id), []);'],
+                    ["Keys, structure, and lists", "Beyond memoization: stable keys prevent needless remounts, splitting components limits re-render scope, and moving state down (colocating it where it's used) keeps big trees from re-rendering. For very long lists, virtualize (render only what's visible)."],
+                ],
+                ex: "Build a list where typing in a filter box re-renders slowly because each row does fake heavy work. Fix it: wrap Row in React.memo, memoize the filtered array with useMemo, and confirm the improvement in the Profiler.",
+                tips: ["Re-renders come from state, parent, or context changes", "Measure with the Profiler before optimizing", "memo/useMemo/useCallback are targeted, not default"],
+            },
+        ],
+        Advanced: [
+            {
+                t: "Client-Side Routing with React Router", s: "react-router",
+                e: "Turn a single-page app into a multi-page experience with URLs, params, and nested layouts.",
+                sec: [
+                    ["Routes and links", "React Router maps URLs to components without full page reloads. Define routes, and navigate with Link (not <a>, which reloads). The router swaps the matched component while keeping the app alive.", 'import { BrowserRouter, Routes, Route, Link } from "react-router-dom";\n\n<BrowserRouter>\n    <nav><Link to="/">Home</Link> <Link to="/about">About</Link></nav>\n    <Routes>\n        <Route path="/" element={<Home />} />\n        <Route path="/about" element={<About />} />\n        <Route path="*" element={<NotFound />} />\n    </Routes>\n</BrowserRouter>'],
+                    ["URL params and navigation", "Dynamic segments capture values (/users/:id) read with useParams. Navigate programmatically with useNavigate (after a form submit, say), and read query strings with useSearchParams.", 'function User() {\n    const { id } = useParams();\n    const navigate = useNavigate();\n    return <button onClick={() => navigate("/")}>User {id} — go home</button>;\n}'],
+                    ["Nested routes and layouts", "Nest routes so shared layout (nav, sidebar) wraps child pages via an Outlet, and add protected routes by wrapping elements with an auth check that redirects. This structures real apps cleanly.", 'function Layout() {\n    return <div><Header /><Outlet /></div>;   // children render at <Outlet/>\n}\n<Route element={<Layout />}>\n    <Route path="/dashboard" element={<Dashboard />} />\n</Route>'],
+                ],
+                ex: "Build a small app with Home, a Products list, and a Product detail page at /products/:id. Add a shared layout with navigation via Outlet, a 404 route, and a button that navigates programmatically.",
+                tips: ["Link/NavLink navigate without reloads", "useParams for path params, useNavigate to go programmatically", "Nested routes + Outlet share layout across pages"],
+            },
+            {
+                t: "Server State with TanStack Query", s: "react-tanstack-query",
+                e: "Stop hand-rolling fetch logic — cache, refetch, and sync server data declaratively.",
+                sec: [
+                    ["The problem it solves", "Server data is not really 'state' you own — it's a cache of something remote. TanStack Query treats it that way: caching, background refetching, deduplication, retries, and stale-while-revalidate, replacing dozens of lines of manual effect code."],
+                    ["useQuery", "Describe a query with a key and a fetch function; the hook returns data, status, and errors, and caches by key so the same data isn't refetched needlessly. It refetches on focus and reconnect by default.", 'import { useQuery } from "@tanstack/react-query";\n\nfunction Users() {\n    const { data, isPending, error } = useQuery({\n        queryKey: ["users"],\n        queryFn: () => fetch("/api/users").then(r => r.json()),\n    });\n    if (isPending) return <p>Loading…</p>;\n    if (error) return <p>Error</p>;\n    return <ul>{data.map(u => <li key={u.id}>{u.name}</li>)}</ul>;\n}'],
+                    ["Mutations and cache updates", "useMutation handles writes (POST/PUT/DELETE) and, on success, invalidates related queries so the UI reflects the change — optionally with optimistic updates for instant feedback. This closes the loop between reads and writes cleanly.", 'const qc = useQueryClient();\nconst addUser = useMutation({\n    mutationFn: (u) => fetch("/api/users", { method: "POST", body: JSON.stringify(u) }),\n    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),\n});'],
+                ],
+                ex: "Refactor an earlier manual-fetch component to TanStack Query: set up the QueryClientProvider, load a list with useQuery, and add a create form using useMutation that invalidates the list on success.",
+                tips: ["Treat server data as a cache, not local state", "useQuery caches by key; refetches on focus/reconnect", "useMutation + invalidateQueries keeps reads fresh after writes"],
+            },
+            {
+                t: "React with TypeScript", s: "react-typescript",
+                e: "Add type safety to components, props, hooks, and events for fewer bugs and better tooling.",
+                sec: [
+                    ["Typing props", "Define a props type and annotate the component. TypeScript then checks every usage — missing props, wrong types, typos — at your editor, before runtime. Children get the ReactNode type.", 'type CardProps = {\n    title: string;\n    count?: number;            // optional\n    children: React.ReactNode;\n};\n\nfunction Card({ title, count = 0, children }: CardProps) {\n    return <div><h3>{title} ({count})</h3>{children}</div>;\n}'],
+                    ["Typing state and events", "useState infers from the initial value; give an explicit type when it can be null or a union. Event handlers get precise event types so target and key are typed.", 'const [user, setUser] = useState<User | null>(null);\n\nconst onChange = (e: React.ChangeEvent<HTMLInputElement>) => setText(e.target.value);\nconst onSubmit = (e: React.FormEvent) => { e.preventDefault(); };'],
+                    ["Typing hooks and generics", "Custom hooks return typed values, and generic components/hooks preserve types through. A well-typed useFetch<T> gives callers fully-typed data with zero casts.", 'function useFetch<T>(url: string) {\n    const [data, setData] = useState<T | null>(null);\n    useEffect(() => { fetch(url).then(r => r.json()).then(setData); }, [url]);\n    return data;\n}\nconst users = useFetch<User[]>("/api/users");   // users: User[] | null'],
+                ],
+                ex: "Convert your earlier todo app to TypeScript: define a Todo type, type the reducer's state and actions with a discriminated union, type the props of each component, and remove any 'any'.",
+                tips: ["Type props with a type/interface; children = ReactNode", "Annotate state unions and event handlers explicitly", "Generic hooks/components carry types to the caller"],
+            },
+            {
+                t: "Code Splitting and Suspense", s: "react-code-splitting",
+                e: "Ship less JavaScript up front by loading parts of your app on demand.",
+                sec: [
+                    ["Why split code", "A big single bundle delays first load. Code splitting breaks the app into chunks loaded when needed — per route, per heavy component (charts, editors), or per rarely-used feature — dramatically improving initial load time."],
+                    ["lazy and Suspense", "React.lazy imports a component as a separate chunk; Suspense shows a fallback while it loads. Wrap lazy components (commonly whole routes) in Suspense with a spinner.", 'import { lazy, Suspense } from "react";\nconst Dashboard = lazy(() => import("./Dashboard"));\n\n<Suspense fallback={<Spinner />}>\n    <Dashboard />\n</Suspense>'],
+                    ["Route-based splitting and beyond", "The highest-value split is per route — users download only the page they visit. Combine with prefetching on hover/idle for instant navigation. Suspense also underpins modern data fetching in frameworks, where components can 'suspend' while data loads."],
+                ],
+                ex: "Take a multi-route app and lazy-load each route component with React.lazy wrapped in Suspense. Verify in the Network tab that each route's JavaScript loads only when you navigate to it.",
+                tips: ["Split by route first — biggest win for least effort", "React.lazy creates a chunk; Suspense shows the fallback", "Prefetch on hover/idle for instant-feeling navigation"],
+            },
+            {
+                t: "Testing React Components", s: "react-testing",
+                e: "Write tests that give you confidence to refactor, using Testing Library's user-centric approach.",
+                sec: [
+                    ["Test behavior, not implementation", "React Testing Library encourages testing what the user sees and does — find elements by role/text, interact, and assert on the result — rather than internal state. Such tests survive refactors and double as documentation.", 'import { render, screen } from "@testing-library/react";\nimport userEvent from "@testing-library/user-event";\n\ntest("counter increments", async () => {\n    render(<Counter />);\n    await userEvent.click(screen.getByRole("button", { name: /increment/i }));\n    expect(screen.getByText(/count: 1/i)).toBeInTheDocument();\n});'],
+                    ["Queries and user events", "Prefer accessible queries (getByRole, getByLabelText) — they also nudge you toward accessible markup. Simulate real interaction with userEvent (typing, clicking, tabbing) rather than firing raw events."],
+                    ["Async and mocking", "Use findBy* queries and waitFor for content that appears after fetching, and mock the network (MSW is excellent) so tests are fast and deterministic. Test the loading, error, and success paths."],
+                ],
+                ex: "Write tests for your sign-up form: it shows validation errors for bad input, disables submit until valid, and calls the submit handler with the right data. Use getByRole/getByLabelText and userEvent.",
+                tips: ["Query by role/text; test behavior, not internals", "Drive interactions with userEvent", "findBy/waitFor + a mocked network for async paths"],
+            },
+            {
+                t: "State Management at Scale", s: "react-state-management",
+                e: "Choose the right tool as apps grow — from built-in patterns to dedicated libraries.",
+                sec: [
+                    ["Start with the platform", "Most apps need less global state than they think. Local state, lifting, composition, Context for truly global values, and TanStack Query for server data cover the majority. Reach for a library only for genuinely complex, frequently-updated client state."],
+                    ["The library landscape", "When you do need one: Zustand offers a tiny, hook-based store with minimal boilerplate; Redux Toolkit brings structure, devtools, and middleware for large teams; Jotai/Recoil take an atomic approach. They all solve the 'shared, fast-changing client state' problem differently.", 'import { create } from "zustand";\nconst useStore = create((set) => ({\n    count: 0,\n    increment: () => set((s) => ({ count: s.count + 1 })),\n}));\nfunction Counter() {\n    const { count, increment } = useStore();\n    return <button onClick={increment}>{count}</button>;\n}'],
+                    ["Separate server and client state", "The biggest clarity win: don't store fetched server data in a global client store. Let a query library own server state (caching, freshness) and keep the global store for true client state — UI mode, selections, unsaved input. Mixing them creates cache-invalidation pain."],
+                ],
+                ex: "Take an app with prop drilling and refactor its client state (e.g. a cart or UI preferences) into a Zustand store, while leaving any server data in TanStack Query. Note which state belongs where and why.",
+                tips: ["Exhaust local/lifting/Context/query before a store", "Zustand for light, Redux Toolkit for large/structured", "Keep server state in a query lib, not the global store"],
+            },
+            {
+                t: "Production React with Next.js", s: "react-nextjs",
+                e: "Go beyond client-only apps: server rendering, routing, and full-stack React with the leading framework.",
+                sec: [
+                    ["Why a framework", "Plain React ships an empty HTML shell filled in by JavaScript — bad for SEO and first paint. Next.js adds server rendering, file-based routing, data fetching, bundling, and API routes out of the box, so you build products instead of plumbing."],
+                    ["Server and client components", "Next's App Router defaults to Server Components — they run on the server, fetch data directly, and send zero JavaScript for static parts. Mark interactive pieces with 'use client'. This split ships less JS while keeping rich interactivity where needed.", '// app/page.tsx — a Server Component by default\nexport default async function Page() {\n    const data = await getData();       // runs on the server\n    return <Feed items={data} />;\n}\n\n// components/LikeButton.tsx\n"use client";\nexport function LikeButton() { /* useState, onClick */ }'],
+                    ["Routing, data, and deployment", "Folders under app/ become routes; layouts nest; loading and error files handle those states declaratively. Fetch in Server Components (with caching), mutate with Server Actions or route handlers, and deploy anywhere that runs Node — the same model this very website is built on."],
+                ],
+                ex: "Create a Next.js app, build a route that fetches and renders a list in a Server Component, and add a small interactive Client Component (a filter or like button). Observe how much less JavaScript ships versus a client-only version.",
+                tips: ["Frameworks add SSR, routing, and data fetching you'd otherwise build", "Server Components fetch data and ship no JS; 'use client' for interactivity", "File-based routing with nested layouts, loading, and error states"],
+            },
+            {
+                t: "Accessibility and Production Best Practices", s: "react-accessibility-best-practices",
+                e: "Ship React that's usable by everyone and maintainable by your future team.",
+                sec: [
+                    ["Accessibility (a11y)", "Accessible apps reach more users and are legally required in many contexts. Use semantic elements (button, nav, main — not clickable divs), label every input, manage focus on route changes and in modals, and ensure keyboard operability. Test with a screen reader and the axe DevTools extension.", '<button onClick={onClose} aria-label="Close dialog">×</button>\n<label htmlFor="email">Email</label>\n<input id="email" type="email" />'],
+                    ["Project structure and conventions", "Organize by feature, not file type, as apps grow. Keep components small and focused, colocate state near use, extract logic into hooks, and adopt consistent formatting (Prettier) and linting (ESLint with the React and a11y plugins) enforced in CI."],
+                    ["Performance and reliability in production", "Add error boundaries to contain crashes to a subtree, lazy-load routes, optimize images, measure Core Web Vitals, and monitor real errors (Sentry). Ship a production build, and treat the React DevTools Profiler and Lighthouse as routine checks, not afterthoughts."],
+                ],
+                ex: "Audit one of your earlier apps: replace any div-buttons with real buttons, label all inputs, add an error boundary around a route, run the axe DevTools and Lighthouse, and fix the top three issues each reports.",
+                tips: ["Semantic HTML + labels + focus management = accessible by default", "Organize by feature; enforce lint/format in CI", "Error boundaries, lazy routes, and Web Vitals for production"],
+            },
+        ],
+    },
+}

@@ -1,0 +1,256 @@
+export const TYPESCRIPT = {
+    name: "TypeScript",
+    palette: ["#3178c6", "#0ea5e9"],
+    kw: "typescript,code,programming",
+    images: ["1516116216624-53e697fedbea", "1542831371-29b0f74f9713", "1587620962725-abab7fe55159"],
+    levels: {
+        Basic: [
+            {
+                t: "What TypeScript Is and Setup", s: "ts-what-and-setup",
+                e: "Understand what TypeScript adds to JavaScript and get the compiler running.",
+                sec: [
+                    ["A typed layer over JavaScript", "TypeScript is JavaScript plus a static type system. You annotate what shape your data has, and the compiler checks your code before it runs — catching typos, wrong arguments, and missing values in your editor instead of in production. All valid JavaScript is valid TypeScript, so adoption is gradual.", 'let count: number = 0;\nlet title: string = "Hello";\ncount = "oops";   // Error: Type \'string\' is not assignable to type \'number\''],
+                    ["It compiles away", "Browsers and Node run JavaScript, not TypeScript. The compiler (tsc) checks types and strips them, emitting plain JS — types have zero runtime cost and cannot be checked at runtime. This 'erasure' is why you still validate external data yourself.", "npm install -D typescript\nnpx tsc --init      # creates tsconfig.json\nnpx tsc             # type-checks and compiles"],
+                    ["The developer experience", "The real payoff is tooling: autocomplete that knows your data, inline errors as you type, safe refactoring (rename a field everywhere), and self-documenting code. Editors like VS Code use the same engine, so the checks you see match the compiler."],
+                ],
+                ex: "Create a TypeScript project with `tsc --init`, write a file with a typed variable and a function, introduce a type error on purpose, and watch the compiler report it. Then fix it and compile to JavaScript to see the types stripped.",
+                tips: ["TypeScript = JavaScript + compile-time type checking", "Types are erased at build — no runtime cost or checking", "The biggest win is editor tooling and safe refactoring"],
+            },
+            {
+                t: "Primitive Types and Inference", s: "ts-primitives-inference",
+                e: "Learn the core types and how TypeScript figures out types on its own.",
+                sec: [
+                    ["The primitive types", "The building blocks: string, number (one type for ints and floats), boolean, plus null and undefined. Annotate with a colon after the name. You rarely need to annotate everything — annotate where inference can't help.", 'let name: string = "Asha";\nlet age: number = 30;\nlet active: boolean = true;\nlet nothing: null = null;'],
+                    ["Inference: let the compiler work", "TypeScript infers types from values, so `let x = 5` is already number — no annotation needed. Annotate function parameters, returns at boundaries, and variables initialized later; let inference cover the obvious. Over-annotating is noise.", 'let score = 41;          // inferred as number\nconst greeting = "hi";   // inferred as the literal "hi"\n// score = "x";          // Error, still type-checked'],
+                    ["any, unknown, and why to avoid any", "any turns off checking for a value — an escape hatch that defeats the purpose; avoid it. unknown is the safe alternative: you must narrow it before use. Prefer precise types, then unknown, and treat any as a last resort you'll remove later.", 'let loose: any = 5;\nloose.foo.bar;           // no error — dangerous\n\nlet safe: unknown = getData();\n// safe.trim();          // Error: must narrow first\nif (typeof safe === "string") safe.trim();   // OK'],
+                ],
+                ex: "Write several variables letting inference type them, then add explicit annotations only where a variable starts uninitialized. Create an `unknown` value and safely narrow it two different ways before using it.",
+                tips: ["Core primitives: string, number, boolean, null, undefined", "Lean on inference; annotate boundaries, not everything", "Avoid any; use unknown and narrow before use"],
+            },
+            {
+                t: "Arrays, Tuples, and Enums", s: "ts-arrays-tuples-enums",
+                e: "Type collections precisely — homogeneous arrays, fixed tuples, and named constant sets.",
+                sec: [
+                    ["Arrays", "Type an array by its element type with [] or the generic Array form. TypeScript then checks every element and every method result, so map/filter stay typed all the way through.", 'let nums: number[] = [1, 2, 3];\nlet names: Array<string> = ["a", "b"];\nconst upper = names.map(n => n.toUpperCase());   // string[]'],
+                    ["Tuples: fixed-length, ordered", "A tuple is an array with a known length and a type per position — perfect for pairs and fixed records, and exactly what hooks like React's useState return. Order and length are enforced.", 'let point: [number, number] = [10, 20];\nlet entry: [string, number] = ["age", 30];\n// point = [1, 2, 3];   // Error: too many elements'],
+                    ["Enums and the union alternative", "Enums name a set of related constants. Modern TypeScript often prefers a union of string literals instead — simpler, no runtime code emitted, and easy to work with. Know both; reach for unions by default.", 'enum Status { Active, Inactive }        // classic enum\n\ntype Role = "admin" | "editor" | "guest";   // union — usually preferred\nlet role: Role = "admin";'],
+                ],
+                ex: "Type an array of numbers and compute a typed sum. Declare a tuple for a [name, score] pair. Model a set of order statuses two ways — as an enum and as a string-literal union — and note which you'd choose.",
+                tips: ["number[] or Array<number> for homogeneous lists", "Tuples fix length and per-position types", "Prefer string-literal unions over enums in most cases"],
+            },
+            {
+                t: "Objects and Interfaces", s: "ts-objects-interfaces",
+                e: "Describe the shape of objects — the heart of typing real-world data.",
+                sec: [
+                    ["Object types and interfaces", "Describe an object's shape inline or, better, name it with an interface. Interfaces read cleanly, can be reused, and power autocomplete for every property.", 'interface User {\n    id: number;\n    name: string;\n    email: string;\n}\n\nfunction greet(user: User) {\n    return `Hi ${user.name}`;\n}'],
+                    ["Optional and readonly properties", "Mark properties that may be absent with ? and ones that must not change with readonly. TypeScript enforces both — accessing an optional forces you to handle undefined, and writing to a readonly is an error.", 'interface Product {\n    name: string;\n    price: number;\n    description?: string;     // optional\n    readonly sku: string;     // cannot be reassigned\n}'],
+                    ["Nested and index signatures", "Objects nest, and interfaces compose. When keys aren't known ahead of time (a dictionary), an index signature types them uniformly.", 'interface Config {\n    theme: { color: string; dark: boolean };\n    features: string[];\n}\ninterface Scores {\n    [studentName: string]: number;   // any string key → number\n}'],
+                ],
+                ex: "Model a blog post with an interface: required title and body, optional coverImage, readonly id, a nested author object, and a tags array. Write a function that takes a post and returns a summary, relying on the types.",
+                tips: ["Name object shapes with interfaces for reuse and tooling", "? marks optional, readonly prevents reassignment", "Index signatures type dictionaries with unknown keys"],
+            },
+            {
+                t: "Functions", s: "ts-functions",
+                e: "Type parameters, return values, optional and default arguments, and function shapes.",
+                sec: [
+                    ["Parameter and return types", "Annotate each parameter and, at boundaries, the return type. The compiler then checks every call site and every return path. Return type inference is usually fine, but annotating public functions documents intent and catches mistakes early.", 'function add(a: number, b: number): number {\n    return a + b;\n}\nconst multiply = (a: number, b: number): number => a * b;'],
+                    ["Optional, default, and rest params", "Mark trailing params optional with ?, give defaults with =, and collect variadic args with a typed rest parameter. Optional and default parameters must come after required ones.", 'function greet(name: string, greeting = "Hello", ...titles: string[]): string {\n    return `${greeting} ${titles.join(" ")} ${name}`;\n}\ngreet("Asha");\ngreet("Ravi", "Hi", "Dr.");'],
+                    ["Function types and void", "Describe the shape of a callback with a function type — essential for typing event handlers and higher-order functions. Use void for functions that return nothing.", 'type Handler = (event: string) => void;\nfunction on(evt: string, cb: Handler) { cb(evt); }\n\nfunction forEachNum(nums: number[], fn: (n: number) => void) {\n    nums.forEach(fn);\n}'],
+                ],
+                ex: "Write a typed `format(value, options?)` function with an optional options object (with defaults), a typed callback parameter, and a rest parameter. Type a higher-order function that takes and returns functions.",
+                tips: ["Type parameters always; return types at boundaries", "Optional/default/rest params come after required ones", "Function types describe callbacks; void = returns nothing"],
+            },
+            {
+                t: "Union and Literal Types", s: "ts-union-literal-types",
+                e: "Model values that can be one of several types or a fixed set of options.",
+                sec: [
+                    ["Union types", "A union (A | B) says a value is one of several types. It's how you model 'string or number', 'value or null', and API results. You can only use members common to all union arms until you narrow.", 'function format(id: string | number): string {\n    return `ID-${id}`;         // both have string coercion\n}\nlet result: string | null = null;'],
+                    ["Literal types", "A literal type is an exact value: not any string, but specifically 'admin'. Combined into a union, literals model finite option sets with autocomplete and exhaustive checking — far safer than loose strings.", 'type Size = "sm" | "md" | "lg";\nfunction setSize(size: Size) { /* ... */ }\nsetSize("md");     // OK\n// setSize("xl");  // Error — not a valid Size'],
+                    ["Narrowing to use unions", "To operate on a specific arm of a union, narrow it with typeof, equality checks, or the in operator; TypeScript then knows the precise type inside the branch. This is the everyday rhythm of union types.", 'function len(x: string | string[]): number {\n    if (typeof x === "string") return x.length;   // x is string here\n    return x.length;                              // x is string[] here\n}'],
+                ],
+                ex: "Type a function that accepts a status as a literal union ('idle' | 'loading' | 'success' | 'error') and returns a message for each. Type another that accepts string | number | null and handles all three by narrowing.",
+                tips: ["Unions model 'one of several types'", "Literal unions give finite, autocompleted option sets", "Narrow (typeof/===/in) before using a specific arm"],
+            },
+            {
+                t: "Type Aliases vs Interfaces", s: "ts-aliases-vs-interfaces",
+                e: "Know the two ways to name types and when each fits best.",
+                sec: [
+                    ["Type aliases", "The type keyword names any type — not just objects, but unions, tuples, primitives, and functions. It's the more flexible of the two and the only choice for unions and complex compositions.", 'type ID = string | number;\ntype Point = { x: number; y: number };\ntype Callback = (n: number) => void;\ntype Pair = [string, number];'],
+                    ["Interfaces and extension", "interface describes object shapes and supports extends for inheritance. Interfaces are 'open' — declaring the same interface twice merges them (declaration merging), which libraries use to let you augment their types.", 'interface Animal { name: string }\ninterface Dog extends Animal { breed: string }\n\ninterface Window { myGlobal: string }   // merges with the built-in Window'],
+                    ["Which to use", "For object shapes, either works — many teams default to interface for public object contracts (better extension and merging) and type for unions, tuples, functions, and mapped/conditional types. Consistency within a codebase matters more than the choice."],
+                ],
+                ex: "Express the same object shape as both an interface and a type alias. Then create something only a type alias can do (a union) and something interfaces do naturally (extend a base and merge a second declaration).",
+                tips: ["type names any type; interface is object-focused", "interface supports extends and declaration merging", "Default: interface for object contracts, type for the rest"],
+            },
+            {
+                t: "Working With the DOM and Type Assertions", s: "ts-dom-assertions",
+                e: "Type browser APIs correctly and use assertions responsibly when you know more than the compiler.",
+                sec: [
+                    ["Typed DOM APIs", "TypeScript ships types for the DOM. querySelector returns Element | null, so you handle the null and narrow to the specific element type to access its properties. This prevents the classic 'null is not an object' crash.", 'const input = document.querySelector("#email");\nif (input instanceof HTMLInputElement) {\n    console.log(input.value);   // typed as string\n}'],
+                    ["Type assertions (as)", "When you genuinely know a value's type better than the compiler can infer (e.g. a specific element), assert it with `as`. Assertions are promises to the compiler, not checks — a wrong assertion causes a runtime error, so use sparingly.", 'const canvas = document.getElementById("c") as HTMLCanvasElement;\nconst ctx = canvas.getContext("2d");\n\nconst data = JSON.parse(raw) as User;   // trust, but validate real input'],
+                    ["Assertions vs validation", "Never use `as` to silence errors on untrusted data (API responses, user input) — it lies to the type system while the data might be anything. Validate at runtime (with checks or a library like Zod) and let types flow from the validated result."],
+                ],
+                ex: "Write code that selects a form input, narrows it with instanceof, and reads its value safely. Then contrast: parse a JSON string with an `as` assertion, and describe why runtime validation would be safer for real API data.",
+                tips: ["DOM queries return nullable/base types — narrow them", "`as` asserts, it does not check — use sparingly", "Validate untrusted data at runtime, don't just assert it"],
+            },
+        ],
+        Intermediate: [
+            {
+                t: "Generics", s: "ts-generics",
+                e: "Write reusable, type-safe functions and types that work over any type without losing precision.",
+                sec: [
+                    ["The problem generics solve", "Without generics you'd either duplicate a function per type or fall back to any and lose safety. A generic is a type parameter — 'this works for any T and preserves it' — so one function stays fully typed for every caller.", 'function first<T>(items: T[]): T | undefined {\n    return items[0];\n}\nconst n = first([1, 2, 3]);       // number | undefined\nconst s = first(["a", "b"]);     // string | undefined'],
+                    ["Generic types and interfaces", "Types and interfaces take parameters too — this is how Array<T>, Promise<T>, and Map<K, V> are defined. Your own generic containers and results carry types through cleanly.", 'interface ApiResult<T> {\n    data: T;\n    status: number;\n}\nfunction wrap<T>(data: T): ApiResult<T> {\n    return { data, status: 200 };\n}\nconst r = wrap({ id: 1 });   // ApiResult<{ id: number }>'],
+                    ["Constraints", "Restrict a type parameter with extends so you can rely on certain properties while staying generic. This is the sweet spot: flexible, but safe about what you use.", 'function longest<T extends { length: number }>(a: T, b: T): T {\n    return a.length >= b.length ? a : b;\n}\nlongest("aa", "b");         // OK — strings have length\nlongest([1, 2], [3]);       // OK — arrays too\n// longest(1, 2);           // Error — numbers have no length'],
+                ],
+                ex: "Write a generic `pluck<T, K>(items: T[], key: K)` that returns an array of one property's values, constrained so key must be a key of T. Also write a generic `Box<T>` interface with get/set typed methods.",
+                tips: ["Generics reuse logic while preserving exact types", "Generic types power Array/Promise/Map and your own", "Constrain with extends to safely use members"],
+            },
+            {
+                t: "Narrowing and Type Guards", s: "ts-narrowing-guards",
+                e: "Teach the compiler what type a value has inside a branch — the core skill of practical TypeScript.",
+                sec: [
+                    ["Built-in narrowing", "TypeScript narrows unions automatically from typeof (primitives), instanceof (classes), the in operator (property presence), and equality checks. Inside the branch, the value has the narrowed type with full autocomplete.", 'function describe(x: string | number | Date) {\n    if (typeof x === "number") return x.toFixed(2);\n    if (x instanceof Date) return x.toISOString();\n    return x.toUpperCase();   // x is string\n}'],
+                    ["Custom type guards", "For your own types, write a function returning `x is T` — a type predicate. When it returns true, the compiler narrows the argument to T. This is how you validate shapes and keep the rest of the code type-safe.", 'interface Cat { meow(): void }\nfunction isCat(pet: unknown): pet is Cat {\n    return typeof pet === "object" && pet !== null && "meow" in pet;\n}\nif (isCat(pet)) pet.meow();   // narrowed to Cat'],
+                    ["Truthiness and discriminants", "Narrowing also happens from truthiness checks (filtering out null/undefined) and from a shared literal 'discriminant' property across a union — the basis of discriminated unions covered in the Advanced level. Combine techniques freely."],
+                ],
+                ex: "Write a function taking `string | number | null` that handles each case via narrowing. Then write a custom type guard `isUser(x): x is User` that checks the shape at runtime and use it to safely process an unknown value.",
+                tips: ["typeof/instanceof/in/=== narrow unions automatically", "Custom guards return `x is T` to narrow your own types", "Truthiness checks remove null/undefined from a union"],
+            },
+            {
+                t: "Utility Types", s: "ts-utility-types",
+                e: "Transform existing types with TypeScript's built-in helpers instead of rewriting them.",
+                sec: [
+                    ["Partial, Required, Readonly", "These derive a new type from an existing one: Partial<T> makes all properties optional (great for updates), Required<T> the opposite, Readonly<T> locks them. You describe a type once and adapt it.", 'interface User { id: number; name: string; email: string }\nfunction updateUser(id: number, changes: Partial<User>) { /* ... */ }\nupdateUser(1, { name: "New" });   // only some fields needed'],
+                    ["Pick, Omit, Record", "Pick<T, Keys> selects a subset of properties; Omit<T, Keys> removes some; Record<K, V> builds an object type from a key set to a value type. Together they cover most everyday type surgery.", 'type UserPreview = Pick<User, "id" | "name">;\ntype UserWithoutEmail = Omit<User, "email">;\ntype RolePermissions = Record<"admin" | "guest", string[]>;'],
+                    ["Return and parameter extraction", "ReturnType<F> and Parameters<F> pull types out of functions, and NonNullable<T> strips null/undefined. These keep types in sync automatically — change the function, the derived types follow.", 'function createUser() { return { id: 1, name: "A" }; }\ntype NewUser = ReturnType<typeof createUser>;   // { id: number; name: string }'],
+                ],
+                ex: "Given a User interface, derive: an update type with Partial, a public preview with Pick, a version without a sensitive field with Omit, and a permissions map with Record. Then extract a function's return type with ReturnType.",
+                tips: ["Derive types with Partial/Required/Readonly", "Pick/Omit/Record for subsetting and building types", "ReturnType/Parameters keep derived types in sync"],
+            },
+            {
+                t: "Classes and Access Modifiers", s: "ts-classes",
+                e: "Add types, visibility, and structure to object-oriented TypeScript.",
+                sec: [
+                    ["Typed classes", "Classes get typed fields, constructor parameters, and methods. TypeScript checks that fields are initialized and used correctly. A parameter property (public/private in the constructor) declares and assigns a field in one line.", 'class Account {\n    balance: number;\n    constructor(public owner: string, initial: number = 0) {\n        this.balance = initial;   // owner is auto-declared and assigned\n    }\n    deposit(amount: number): number {\n        return (this.balance += amount);\n    }\n}'],
+                    ["Access modifiers", "public (default), private (only within the class), and protected (class and subclasses) control visibility at compile time. Use private for internal state so callers can't reach in. The # prefix gives true runtime-private fields.", 'class Timer {\n    private seconds = 0;\n    #secret = 42;              // truly private at runtime\n    tick() { this.seconds++; }\n}\n// new Timer().seconds;      // Error: private'],
+                    ["Interfaces with classes", "A class can implement an interface, guaranteeing it provides the required shape — useful for dependency injection and swappable implementations (a real logger vs a fake one in tests).", 'interface Logger { log(msg: string): void }\nclass ConsoleLogger implements Logger {\n    log(msg: string) { console.log(msg); }\n}'],
+                ],
+                ex: "Model a BankAccount class with a private balance, a public owner via a parameter property, deposit/withdraw methods that guard against overdraft, and an implements clause for a small interface. Try accessing the private field from outside to see the error.",
+                tips: ["Parameter properties declare + assign fields in one line", "private/protected enforce visibility; # is runtime-private", "implements guarantees a class matches an interface"],
+            },
+            {
+                t: "Modules and Project Organization", s: "ts-modules",
+                e: "Split typed code across files with ES module imports and exports.",
+                sec: [
+                    ["Import and export", "TypeScript uses ES modules: export what other files need, import it by path. Named exports for many utilities, a default export for a file's main thing. Types and values are both exported the same way.", '// math.ts\nexport const PI = 3.14159;\nexport function area(r: number): number { return PI * r * r; }\nexport interface Circle { radius: number }\n\n// main.ts\nimport { area, PI, type Circle } from "./math";'],
+                    ["Type-only imports", "Import types with the `type` modifier so bundlers can drop them entirely from the output — clearer intent and smaller builds. Mixing value and type imports is fine, but marking type-only imports is good practice.", 'import { type User, createUser } from "./user";\nimport type { Config } from "./config";'],
+                    ["Structuring a project", "Organize by feature, expose a clean public surface per folder (an index.ts that re-exports), and keep shared types in dedicated files. tsconfig path aliases (@/components) avoid brittle ../../.. imports — the same setup this website uses."],
+                ],
+                ex: "Split a small app into modules: a types file (interfaces), a utilities file (functions), and a main file that imports from both using named and type-only imports. Add a folder index.ts that re-exports its public API.",
+                tips: ["export/import across files; types export like values", "Use `import type` for type-only imports", "Organize by feature; use path aliases over deep ../.."],
+            },
+            {
+                t: "Working With Third-Party Libraries and @types", s: "ts-third-party-types",
+                e: "Consume npm packages with full type safety and know where types come from.",
+                sec: [
+                    ["Bundled vs DefinitelyTyped types", "Many packages ship their own types (nothing extra to do). For those that don't, the community maintains type packages under @types. Install the matching one and imports become typed. Modern packages increasingly bundle types natively.", 'npm install lodash\nnpm install -D @types/lodash    # types live separately\n\nimport { groupBy } from "lodash";   // now fully typed'],
+                    ["Reading library types", "Hover an import to see its types, or open the .d.ts declaration file to understand a library's API precisely — often better documentation than the README. This skill makes any typed library approachable."],
+                    ["When types are missing or wrong", "If a package has no types, you can declare a quick module stub to unblock, then improve it over time; if bundled types are wrong, module augmentation (Advanced level) patches them. Prefer contributing fixes upstream over living with `any`.", '// declarations.d.ts — quick stub for an untyped package\ndeclare module "untyped-lib";'],
+                ],
+                ex: "Add a typed third-party library to a project (one with bundled types and one needing @types), use it, and inspect its types by hovering and opening a .d.ts. Then write a one-line module declaration for a hypothetical untyped package.",
+                tips: ["Types ship with a package or via a @types/* package", "Read .d.ts files as precise API documentation", "Stub untyped modules to unblock; avoid any"],
+            },
+            {
+                t: "Strictness and Null Safety", s: "ts-strictness-null-safety",
+                e: "Turn on the checks that catch the most bugs — especially null and undefined.",
+                sec: [
+                    ["strict mode", "The strict flag in tsconfig enables the checks that make TypeScript worth it: strictNullChecks, noImplicitAny, and more. Always start new projects with strict on — retrofitting it later is painful. It's the difference between decorative and real type safety."],
+                    ["strictNullChecks", "With it on, null and undefined are separate types you must handle explicitly — eliminating the single largest class of runtime crashes. Access to a possibly-null value is an error until you check it.", 'function upper(s: string | undefined): string {\n    // return s.toUpperCase();   // Error under strict\n    return s?.toUpperCase() ?? "";\n}'],
+                    ["Optional chaining and nullish coalescing", "?. safely accesses possibly-missing properties (returning undefined instead of throwing), and ?? supplies a default only for null/undefined (unlike ||, which also triggers on 0 and ''). Together they make null handling concise and correct.", 'const city = user?.address?.city ?? "Unknown";\nconst count = data?.count ?? 0;   // 0 is preserved, unlike ||'],
+                ],
+                ex: "Enable strict in tsconfig and fix the resulting errors in a small file that accesses possibly-null values. Use optional chaining and nullish coalescing to handle each, and note one bug strictNullChecks would have caught.",
+                tips: ["Start every project with strict: true", "strictNullChecks makes null/undefined explicit — huge bug reduction", "?. for safe access, ?? for defaults (0/'' safe)"],
+            },
+        ],
+        Advanced: [
+            {
+                t: "Conditional Types", s: "ts-conditional-types",
+                e: "Compute types from other types with type-level if/else — the basis of advanced type libraries.",
+                sec: [
+                    ["The extends ? : form", "A conditional type chooses one type or another based on whether one type is assignable to another — an if/else at the type level. It lets a type adapt to its input, powering generic utilities that behave differently per type.", 'type IsString<T> = T extends string ? "yes" : "no";\ntype A = IsString<string>;   // "yes"\ntype B = IsString<number>;   // "no"'],
+                    ["infer: extracting types", "Inside a conditional's extends clause, infer captures part of a type into a new variable — how ReturnType, Awaited, and element-type extraction are built. It's pattern matching for types.", 'type ElementType<T> = T extends (infer U)[] ? U : T;\ntype X = ElementType<string[]>;   // string\ntype Y = ElementType<number>;     // number\n\ntype MyReturn<F> = F extends (...args: any[]) => infer R ? R : never;'],
+                    ["Distribution over unions", "Conditional types distribute over union members automatically, applying to each arm — usually what you want, and occasionally surprising. Wrapping in a tuple ([T] extends [U]) disables distribution when you need the union treated as a whole."],
+                ],
+                ex: "Write a conditional type Flatten<T> that yields the element type if T is an array, otherwise T itself, using infer. Then write MyParameters<F> that extracts a function's parameter tuple.",
+                tips: ["extends ? : is type-level if/else", "infer captures a piece of a type (pattern matching)", "Conditionals distribute over unions — [T] disables it"],
+            },
+            {
+                t: "Mapped Types", s: "ts-mapped-types",
+                e: "Transform every property of a type programmatically — how utility types are actually built.",
+                sec: [
+                    ["Mapping over keys", "A mapped type iterates a type's keys and produces a new property for each — the mechanism behind Partial, Readonly, and Record. You control optionality and mutability with modifiers.", 'type MyPartial<T> = { [K in keyof T]?: T[K] };\ntype MyReadonly<T> = { readonly [K in keyof T]: T[K] };\ntype Stringify<T> = { [K in keyof T]: string };'],
+                    ["Modifiers and remapping", "Add or strip readonly and optional with + / - prefixes, and rename keys with the `as` clause. This lets you derive rich variants — for example, generating getter names from properties.", 'type Mutable<T> = { -readonly [K in keyof T]: T[K] };\ntype Getters<T> = {\n    [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K]\n};\n// Getters<{ name: string }> → { getName: () => string }'],
+                    ["Combining with conditionals", "Mapped and conditional types compose to build precise transformations — pick only properties of a certain type, make a subset optional, deep-readonly a nested object. This is the engine room of type-safe libraries."],
+                ],
+                ex: "Write a mapped type Nullable<T> making every property `T[K] | null`, and a Mutable<T> that removes readonly. Then build a mapped+conditional type that picks only the function-typed properties of an object type.",
+                tips: ["Mapped types iterate keyof T to build new types", "+/- toggle readonly/optional; `as` remaps key names", "Compose with conditionals for precise transforms"],
+            },
+            {
+                t: "Template Literal Types", s: "ts-template-literal-types",
+                e: "Build and constrain string types at the type level for powerful, precise APIs.",
+                sec: [
+                    ["String types from patterns", "Template literal types embed types inside string patterns, producing exact string unions. They let you enforce formats — event names, CSS units, route paths — that were previously just 'string'.", 'type Event = "click" | "hover";\ntype Handler = `on${Capitalize<Event>}`;   // "onClick" | "onHover"\ntype Unit = `${number}px` | `${number}%`;'],
+                    ["Built-in string helpers", "Uppercase, Lowercase, Capitalize, and Uncapitalize transform string literal types, composing with template literals to generate names and enforce casing conventions in your APIs."],
+                    ["Practical uses", "Template literals type CSS-in-JS values, API route builders, and object key transformations (as seen in mapped-type remapping). They turn stringly-typed corners of your code into checked, autocompleted ones — catching typos the compiler couldn't see before.", 'type Route = `/users/${number}` | `/posts/${string}`;\nfunction navigate(path: Route) { /* ... */ }\nnavigate("/users/42");     // OK\n// navigate("/user/42");   // Error'],
+                ],
+                ex: "Define a template literal type for hex colors like `#${string}` and for API routes such as `/api/${string}`. Then generate an event-handler-name union (onClick, onChange, ...) from a base event union using Capitalize.",
+                tips: ["Template literal types build exact string unions", "Uppercase/Capitalize/etc. transform literal strings", "Use them to type routes, units, and event names precisely"],
+            },
+            {
+                t: "Discriminated Unions and Exhaustiveness", s: "ts-discriminated-unions",
+                e: "Model states so that invalid combinations are impossible and every case is handled.",
+                sec: [
+                    ["The discriminant pattern", "Give each arm of a union a shared literal 'tag' property. Switching on that tag narrows to the exact arm, so each branch knows precisely which fields exist — the cleanest way to model state machines and API results.", 'type Result =\n    | { status: "loading" }\n    | { status: "success"; data: string[] }\n    | { status: "error"; message: string };\n\nfunction render(r: Result) {\n    switch (r.status) {\n        case "success": return r.data.length;   // data exists here\n        case "error": return r.message;         // message exists here\n        case "loading": return 0;\n    }\n}'],
+                    ["Making illegal states unrepresentable", "Discriminated unions prevent bugs by construction: there's no way to have an error message on a success, or data on a loading state. This beats a bag of optional booleans (isLoading, isError, data?) that allow contradictory combinations."],
+                    ["Exhaustiveness checking", "Assign the switch's default case to a variable of type never — if you ever add a new arm and forget to handle it, the compiler errors. This turns 'did I cover every case?' from a hope into a guarantee.", 'function assertNever(x: never): never { throw new Error("Unhandled: " + x); }\n// in the default branch:\ndefault: return assertNever(r);'],
+                ],
+                ex: "Model a payment as a discriminated union (pending, paid with transactionId, failed with reason, refunded with amount). Write a handler that switches on the tag and add an exhaustiveness check with never, then add a new arm to see the compiler flag the gap.",
+                tips: ["A shared literal tag makes unions switchable and precise", "Discriminated unions make invalid states impossible", "never in the default enforces exhaustive handling"],
+            },
+            {
+                t: "Declaration Files and Module Augmentation", s: "ts-declaration-files",
+                e: "Describe the types of existing JavaScript and extend or patch third-party types.",
+                sec: [
+                    ["What .d.ts files are", "Declaration files contain only types — no implementation — describing the shape of JavaScript code so TypeScript can check its usage. They're how libraries ship types and how you type plain-JS files or globals in your own project.", '// global.d.ts\ndeclare const APP_VERSION: string;\ndeclare function gtag(...args: any[]): void;'],
+                    ["Typing untyped modules", "For a JS module without types, write a module declaration describing its exports. Start minimal to unblock, then flesh it out — far better than sprinkling any across your codebase.", 'declare module "legacy-widget" {\n    export function init(el: HTMLElement): void;\n    export interface Options { theme: string }\n}'],
+                    ["Module augmentation", "Augmentation adds to existing types: extend a library's interface (add a property to Express's Request), or add to global types (a custom window property). This patches or enriches third-party types without forking them.", 'declare global {\n    interface Window { dataLayer: unknown[] }\n}\nexport {};   // makes this file a module'],
+                ],
+                ex: "Create a .d.ts that declares a global constant and a global window property, and write a module declaration for a hypothetical untyped package with two exports. Then augment an existing interface to add a field.",
+                tips: [".d.ts files are types-only descriptions of JS code", "Declare modules to type untyped packages (beats any)", "Module augmentation extends library/global types safely"],
+            },
+            {
+                t: "Advanced Generics and Type-Level Programming", s: "ts-advanced-generics",
+                e: "Combine generics, constraints, and inference to build precise, reusable abstractions.",
+                sec: [
+                    ["Constraints with keyof", "Constraining a generic to keyof another type creates safe, property-aware functions — the compiler guarantees the key exists and infers the exact value type. This is the backbone of typed data utilities.", 'function getProp<T, K extends keyof T>(obj: T, key: K): T[K] {\n    return obj[key];\n}\nconst user = { id: 1, name: "Asha" };\nconst name = getProp(user, "name");   // string\n// getProp(user, "age");              // Error — not a key'],
+                    ["Default and multiple type parameters", "Type parameters can have defaults and depend on each other, letting one generic serve many shapes while inferring most types so callers rarely annotate. Good generic design feels invisible at the call site.", 'function mapValues<T, U = T>(obj: Record<string, T>, fn: (v: T) => U): Record<string, U> {\n    const out: Record<string, U> = {};\n    for (const k in obj) out[k] = fn(obj[k]);\n    return out;\n}'],
+                    ["Knowing when to stop", "Type-level programming is powerful but can become unreadable. The goal is safer, self-documenting APIs — not cleverness. When a type gets baroque, prefer a simpler design or a runtime check. Readability and good error messages matter more than proving you can encode anything in types."],
+                ],
+                ex: "Write a fully-typed `pick<T, K extends keyof T>(obj, keys)` returning `Pick<T, K>`, and a generic `groupBy` that infers key and value types. Then deliberately over-engineer a type, notice the poor error message, and simplify it.",
+                tips: ["K extends keyof T gives safe, property-aware generics", "Default and dependent type params keep call sites clean", "Favor readable types over clever ones"],
+            },
+            {
+                t: "tsconfig, Compilation, and Build Integration", s: "ts-tsconfig-build",
+                e: "Configure the compiler and fit TypeScript into real build and deployment pipelines.",
+                sec: [
+                    ["Key tsconfig options", "tsconfig.json controls everything: target (JS version to emit), module system, strict (always on), moduleResolution, paths (aliases), and jsx for React. Understand the handful that matter rather than memorizing all of them.", '{\n  "compilerOptions": {\n    "target": "ES2022",\n    "module": "ESNext",\n    "strict": true,\n    "jsx": "react-jsx",\n    "paths": { "@/*": ["./src/*"] },\n    "skipLibCheck": true\n  }\n}'],
+                    ["Type-checking vs transpiling", "Modern toolchains split responsibilities: bundlers (Vite, esbuild, swc) strip types fast for dev/build but do NOT type-check; run `tsc --noEmit` (in CI and your editor) for the actual checking. Knowing this explains why a build can succeed while `tsc` reports errors."],
+                    ["Migrating and shipping", "Adopt TypeScript incrementally: allowJs to mix, rename files gradually, tighten strictness over time. For libraries, emit declaration files (declaration: true) so consumers get types. Enforce `tsc --noEmit` and lint in CI so type errors can't merge — exactly how a production codebase like this website stays safe."],
+                ],
+                ex: "Write a tsconfig for a React + path-alias project with strict mode, then add a CI-style script that runs `tsc --noEmit` separately from the bundler build. Introduce a type error and confirm the build passes but the type-check fails.",
+                tips: ["Learn the key options: target, module, strict, paths, jsx", "Bundlers transpile fast but don't type-check — run tsc --noEmit", "Enforce type-check + lint in CI; emit .d.ts for libraries"],
+            },
+        ],
+    },
+}

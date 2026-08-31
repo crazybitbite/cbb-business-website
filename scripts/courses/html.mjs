@@ -1,0 +1,256 @@
+export const HTML = {
+    name: "HTML",
+    palette: ["#e34f26", "#f97316"],
+    kw: "html,web,markup",
+    images: ["1621839673705-6617adf9e890", "1542831371-29b0f74f9713", "1507721999472-8ed4421c4af2"],
+    levels: {
+        Basic: [
+            {
+                t: "What HTML Is and Your First Page", s: "html-intro",
+                e: "Understand the language that structures every web page and build one from scratch.",
+                sec: [
+                    ["HTML describes structure", "HTML (HyperText Markup Language) is the skeleton of every web page. It isn't a programming language — it's a markup language that labels content so the browser knows what each piece is: a heading, a paragraph, a link, an image. CSS then styles it and JavaScript adds behavior.", '<!-- HTML labels meaning, not appearance -->\n<h1>A heading</h1>\n<p>A paragraph of text.</p>'],
+                    ["The document skeleton", "Every page starts with <!DOCTYPE html> (declaring HTML5), then an <html> root containing <head> (metadata the user doesn't see) and <body> (the visible content). Learn this boilerplate once — every page uses it.", '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8">\n    <title>My Page</title>\n  </head>\n  <body>\n    <h1>Hello, web!</h1>\n  </body>\n</html>'],
+                    ["Viewing your page", "Save the file with a .html extension and open it in any browser — no server or build tool needed. Use the browser's developer tools (F12) to inspect the structure. This instant feedback loop is how you'll learn every element.", '<!-- save as index.html, double-click to open -->'],
+                ],
+                ex: "Create index.html with the full document skeleton, a title, a heading, and two paragraphs. Open it in a browser, then inspect the elements with developer tools to see the tree structure.",
+                tips: ["HTML marks up meaning; CSS styles, JS behaves", "Every page: <!DOCTYPE html> → <html> → <head> + <body>", ".html files open directly in the browser — no setup"],
+            },
+            {
+                t: "Elements, Tags, and Attributes", s: "html-elements-attributes",
+                e: "The fundamental building blocks — how tags wrap content and attributes configure them.",
+                sec: [
+                    ["Elements and tags", "An element is usually an opening tag, content, and a closing tag: <p>text</p>. The tag name says what the element is. Some elements are 'empty' (void) with no content or closing tag, like <br> and <img>.", '<p>This is a paragraph.</p>\n<br>            <!-- void element: a line break -->\n<hr>            <!-- void element: a horizontal rule -->'],
+                    ["Nesting", "Elements nest inside one another to form a tree. Always close tags in the reverse order you opened them, and indent nested elements so the structure stays readable. Improper nesting causes rendering bugs.", '<div>\n  <p>A paragraph with <strong>bold</strong> text.</p>\n</div>'],
+                    ["Attributes", "Attributes add information or configuration to an element, written as name=\"value\" in the opening tag. Common ones: href on links, src and alt on images, id and class for identification and styling. Quote attribute values.", '<a href="https://example.com">A link</a>\n<img src="cat.jpg" alt="A grey cat">\n<p id="intro" class="lead">Styled paragraph</p>'],
+                ],
+                ex: "Build a small page nesting a div containing a heading, a paragraph with a bold word inside it, a horizontal rule, and a link with an href attribute. Validate that every tag is properly closed and nested.",
+                tips: ["Elements = opening tag + content + closing tag (or void)", "Nest properly; close in reverse order of opening", "Attributes (name=\"value\") configure elements — quote values"],
+            },
+            {
+                t: "Text: Headings, Paragraphs, and Formatting", s: "html-text",
+                e: "Structure and emphasize written content with the right text elements.",
+                sec: [
+                    ["Headings and paragraphs", "Six heading levels, <h1> to <h6>, express a document outline — use them in order for structure (and SEO/accessibility), not for size. <p> marks paragraphs. Don't skip levels to get a certain look; that's CSS's job.", '<h1>Page title</h1>\n<h2>A section</h2>\n<h3>A subsection</h3>\n<p>Body text goes in paragraphs.</p>'],
+                    ["Semantic emphasis", "Use elements for meaning: <strong> for importance (bold), <em> for emphasis (italic), <mark> for highlight, <small> for fine print, <del>/<ins> for edits. These convey meaning to screen readers and search engines, unlike purely visual tags.", 'This is <strong>important</strong> and this is <em>emphasized</em>.\n<mark>Highlighted</mark> and <del>removed</del> <ins>added</ins>.'],
+                    ["Whitespace, breaks, and preformatted text", "HTML collapses multiple spaces and line breaks into one — layout comes from elements and CSS, not spacing in the source. Use <br> for a genuine line break (like a poem or address) and <pre> to preserve whitespace exactly (code, ASCII art).", '<p>123 Main St<br>Suite 100</p>\n<pre>\n  preserved   spacing\n  and line breaks\n</pre>'],
+                ],
+                ex: "Write an article page: one h1, two h2 sections each with paragraphs, a highlighted term with mark, an important phrase with strong, and an address using br. Confirm the heading order forms a logical outline.",
+                tips: ["h1–h6 express outline/structure, not size (use in order)", "strong/em/mark convey meaning, not just appearance", "HTML collapses whitespace; use <br> and <pre> deliberately"],
+            },
+            {
+                t: "Links and Images", s: "html-links-images",
+                e: "Connect pages and embed visuals — the 'hypertext' and media of the web.",
+                sec: [
+                    ["Links with the anchor element", "The <a> element creates hyperlinks via its href attribute — to other pages, sites, sections, email, or downloads. Use target=\"_blank\" (with rel=\"noopener\") to open in a new tab, and fragment links (#id) to jump within a page.", '<a href="about.html">About</a>\n<a href="https://example.com" target="_blank" rel="noopener">External</a>\n<a href="#section2">Jump down</a>\n<a href="mailto:hi@site.com">Email us</a>'],
+                    ["Images", "The <img> element embeds pictures with src (the file) and the essential alt (text describing the image for screen readers and when it fails to load). Set width/height to reserve space and prevent layout shift.", '<img src="logo.png" alt="Company logo" width="200" height="80">\n<img src="chart.svg" alt="Sales up 20% year over year">'],
+                    ["File paths", "Paths can be relative (images/cat.jpg — relative to the current file), root-relative (/images/cat.jpg — from the site root), or absolute (https://...). Relative paths keep a project portable; understand the difference to avoid broken links and images.", '<img src="images/cat.jpg" alt="">     <!-- relative -->\n<img src="/assets/logo.png" alt="">    <!-- root-relative -->\n<a href="../index.html">Up one folder</a>'],
+                ],
+                ex: "Build a page with: a link to another local page, an external link opening in a new tab safely, an in-page anchor link, an email link, and two images with meaningful alt text — one using a relative path, one root-relative.",
+                tips: ["<a href> links to pages, sections (#id), email, downloads", "<img> needs src and descriptive alt; set width/height", "Know relative vs root-relative vs absolute paths"],
+            },
+            {
+                t: "Lists", s: "html-lists",
+                e: "Present items as ordered, unordered, or definition lists — used far beyond bullet points.",
+                sec: [
+                    ["Unordered and ordered lists", "<ul> makes a bulleted list, <ol> a numbered one, and each item is an <li>. Use unordered when order doesn't matter, ordered when it does (steps, rankings). ol supports start and type attributes.", '<ul>\n  <li>Apples</li>\n  <li>Oranges</li>\n</ul>\n<ol start="1">\n  <li>Preheat the oven</li>\n  <li>Mix the batter</li>\n</ol>'],
+                    ["Nested lists", "Lists nest to show hierarchy — a sub-list goes inside an <li>, not directly in the <ul>. This models outlines, file trees, and multi-level navigation.", '<ul>\n  <li>Fruits\n    <ul>\n      <li>Citrus</li>\n      <li>Berries</li>\n    </ul>\n  </li>\n</ul>'],
+                    ["Lists are everywhere", "Beyond visible bullets, lists are the semantically correct structure for navigation menus (a <ul> of links), breadcrumbs, tag clouds, and card grids — CSS then removes the bullets and lays them out. Using a list gives screen readers the item count and structure.", '<nav>\n  <ul>\n    <li><a href="/">Home</a></li>\n    <li><a href="/about">About</a></li>\n  </ul>\n</nav>'],
+                ],
+                ex: "Build a recipe page with an ordered list of steps and an unordered ingredients list (with one nested sub-list). Then build a navigation menu as a ul of links — the semantically correct way.",
+                tips: ["ul (bulleted), ol (numbered), li for each item", "Nest sub-lists inside an <li>, not the <ul>", "Menus and breadcrumbs are lists — correct semantics for a11y"],
+            },
+            {
+                t: "Tables", s: "html-tables",
+                e: "Display genuinely tabular data with the right structure — rows, cells, and headers.",
+                sec: [
+                    ["Table structure", "A <table> holds rows (<tr>), which hold header cells (<th>) and data cells (<td>). Wrap the header row in <thead> and the data in <tbody> for structure and styling. Use tables for data, not for page layout (that's CSS's job).", '<table>\n  <thead>\n    <tr><th>Name</th><th>Role</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>Asha</td><td>Admin</td></tr>\n    <tr><td>Ravi</td><td>Editor</td></tr>\n  </tbody>\n</table>'],
+                    ["Spanning and captions", "colspan and rowspan let a cell stretch across columns or rows for grouped headers or merged cells. A <caption> titles the table (good for accessibility), and <tfoot> holds summary rows like totals.", '<table>\n  <caption>Quarterly sales</caption>\n  <tr><th colspan="2">2026</th></tr>\n  <tr><td>Q1</td><td>₹1.2L</td></tr>\n</table>'],
+                    ["Accessible tables", "Associate headers with data using <th> and its scope attribute (scope=\"col\" or scope=\"row\") so screen readers announce the right header for each cell. Proper markup turns a grid of numbers into navigable, understandable data.", '<tr>\n  <th scope="col">Product</th>\n  <th scope="col">Price</th>\n</tr>\n<tr>\n  <th scope="row">Pen</th>\n  <td>₹40</td>\n</tr>'],
+                ],
+                ex: "Build a data table with thead/tbody, a caption, at least one colspan for a grouped header, and scope attributes on the header cells. Confirm it reads sensibly and reflects real tabular data (not layout).",
+                tips: ["table → tr → th/td; group with thead/tbody/tfoot", "colspan/rowspan merge cells; caption titles the table", "Use th + scope for accessible header-to-cell association"],
+            },
+            {
+                t: "Global Attributes: id, class, and More", s: "html-attributes-global",
+                e: "The attributes every element shares — for identification, styling hooks, and metadata.",
+                sec: [
+                    ["id and class", "id gives an element a unique identifier (one per page) — used for in-page links, labels, and JavaScript targeting. class assigns one or more reusable names (space-separated) that CSS and JS use to style or select groups of elements. These two are the backbone of styling.", '<div id="header" class="container dark">\n  <p class="lead">Intro text</p>\n</div>\n<!-- CSS: #header {} and .lead {} -->'],
+                    ["style, title, and lang", "The style attribute applies inline CSS (fine for quick tests, but prefer stylesheets). title shows a tooltip on hover. lang declares the language of content for screen readers and translation. hidden hides an element.", '<p style="color: orange;" title="A hint">Hover me</p>\n<span lang="fr">Bonjour</span>\n<div hidden>Not shown</div>'],
+                    ["data-* attributes", "Custom data-* attributes attach your own data to elements (data-id, data-role), readable in JavaScript via the dataset API — the standard way to pass information from HTML to scripts without abusing class or id.", '<button data-product-id="42" data-action="buy">Buy</button>\n<!-- JS: button.dataset.productId  → "42" -->'],
+                ],
+                ex: "Build a small page using id for a uniquely-linked section, class to style a group of elements the same way, a data-* attribute holding a value, and the lang attribute on a foreign phrase. Note where you'd move the inline style into a stylesheet.",
+                tips: ["id is unique per page; class is reusable (space-separated)", "Prefer stylesheets over the inline style attribute", "data-* attributes pass custom data to JavaScript (dataset)"],
+            },
+            {
+                t: "Comments, Entities, and Symbols", s: "html-comments-entities",
+                e: "Annotate your markup and display special characters correctly.",
+                sec: [
+                    ["Comments", "HTML comments (<!-- ... -->) are notes ignored by the browser — for explaining sections, marking TODOs, or temporarily disabling markup. They're visible in the page source, so never put secrets in them.", '<!-- Main navigation -->\n<nav>...</nav>\n<!-- <p>Temporarily disabled</p> -->'],
+                    ["Character entities", "Some characters are reserved in HTML and must be written as entities: &lt; for <, &gt; for >, &amp; for &, and &quot; for a quote. Otherwise the browser tries to interpret them as markup. Entities start with & and end with ;.", '<p>Use &lt;p&gt; to make a paragraph.</p>\n<p>Fish &amp; chips</p>\n<p>5 &gt; 3 is true</p>'],
+                    ["Symbols and spaces", "Entities also produce symbols and characters not on the keyboard: &copy; (©), &nbsp; (a non-breaking space that prevents an awkward line break), &mdash; (—), and currency/math symbols. Named or numeric (&#169;) forms both work.", '&copy; 2026 Company\n10&nbsp;km          <!-- keeps number and unit together -->\nRs&nbsp;500 &mdash; final price'],
+                ],
+                ex: "Write a page that displays literal HTML tags as text using entities, shows a copyright line with &copy; and a year, uses &amp; in a brand name, and keeps a number and its unit together with &nbsp;. View source to confirm the comments.",
+                tips: ["<!-- comments --> are ignored but visible in source", "Escape reserved chars: &lt; &gt; &amp; &quot;", "Entities give symbols: &copy; &nbsp; &mdash; and more"],
+            },
+        ],
+        Intermediate: [
+            {
+                t: "Forms and Inputs", s: "html-forms",
+                e: "Collect user input — the foundation of every interactive web application.",
+                sec: [
+                    ["The form element", "A <form> wraps input controls. Its action attribute is the URL that receives the data and method is how it's sent (GET puts data in the URL for searches; POST sends it in the body for submissions). Each control's name becomes the key in the submitted data.", '<form action="/subscribe" method="post">\n  <input type="email" name="email">\n  <button type="submit">Subscribe</button>\n</form>'],
+                    ["Input types", "The type attribute picks the control and keyboard: text, email, password, number, date, checkbox, radio, file, color, range, and more. Modern types give mobile keyboards and built-in validation for free.", '<input type="text" name="name">\n<input type="email" name="email">\n<input type="password" name="pw">\n<input type="number" name="age" min="0" max="120">\n<input type="date" name="dob">'],
+                    ["Labels — always", "Every input needs a <label> associated by matching the label's for to the input's id (or by wrapping the input). Labels make forms accessible (screen readers announce them) and clickable (tapping the label focuses the field).", '<label for="email">Email address</label>\n<input type="email" id="email" name="email">\n\n<!-- or wrap: -->\n<label>Name <input type="text" name="name"></label>'],
+                ],
+                ex: "Build a registration form with labeled inputs for name (text), email, password, age (number with min/max), date of birth, and a submit button, using method=post. Ensure every input has an associated label.",
+                tips: ["<form> action + method; each control's name = data key", "type picks the control and mobile keyboard + validation", "Always pair inputs with <label for=…> for accessibility"],
+            },
+            {
+                t: "More Form Elements", s: "html-form-elements",
+                e: "Dropdowns, multi-line text, grouped controls, and richer input options.",
+                sec: [
+                    ["Select and textarea", "<select> with <option> children makes a dropdown (add multiple for multi-select, <optgroup> to group). <textarea> is a multi-line text box sized with rows and cols (or CSS). Set a selected option or a placeholder to guide users.", '<label for="country">Country</label>\n<select id="country" name="country">\n  <option value="">Choose…</option>\n  <option value="in">India</option>\n  <option value="us">USA</option>\n</select>\n<textarea name="message" rows="4" placeholder="Your message"></textarea>'],
+                    ["Checkboxes, radios, and buttons", "Checkboxes allow multiple independent choices; radio buttons sharing a name allow exactly one choice from a group. Buttons come in types: submit (sends the form), reset (clears it), and button (for JavaScript).", '<input type="checkbox" name="terms" id="terms">\n<label for="terms">I agree</label>\n\n<input type="radio" name="plan" value="free" id="free">\n<input type="radio" name="plan" value="pro" id="pro">'],
+                    ["Grouping and helpers", "<fieldset> with <legend> groups related controls with a caption (great for accessibility). <datalist> offers autocomplete suggestions for a text input. These structure complex forms and improve usability.", '<fieldset>\n  <legend>Contact preferences</legend>\n  <input type="checkbox" id="news"><label for="news">Newsletter</label>\n</fieldset>\n<input list="cities" name="city">\n<datalist id="cities"><option value="Pune"><option value="Delhi"></datalist>'],
+                ],
+                ex: "Extend your form with a country dropdown (with a placeholder option and grouped options), a message textarea, a radio group for a plan, a terms checkbox, and a fieldset with a legend grouping notification preferences.",
+                tips: ["select/option for dropdowns; textarea for multi-line", "Radios share a name (pick one); checkboxes are independent", "fieldset+legend group controls; datalist adds autocomplete"],
+            },
+            {
+                t: "Semantic HTML", s: "html-semantic",
+                e: "Use elements that describe their meaning — the key to accessible, maintainable, SEO-friendly pages.",
+                sec: [
+                    ["Why semantics matter", "Instead of a page built from generic <div>s, semantic elements name each region: <header>, <nav>, <main>, <section>, <article>, <aside>, <footer>. This helps screen readers navigate, helps search engines understand your content, and makes your code self-documenting.", '<body>\n  <header>Logo and site title</header>\n  <nav>Main menu</nav>\n  <main>Primary content</main>\n  <footer>Copyright</footer>\n</body>'],
+                    ["Sectioning content", "<article> is self-contained content (a blog post, a product card) that would make sense on its own; <section> is a thematic grouping with a heading; <aside> is tangential content (sidebars, callouts). Choose based on meaning, not appearance.", '<main>\n  <article>\n    <h2>Blog post title</h2>\n    <p>...</p>\n  </article>\n  <aside>Related links</aside>\n</main>'],
+                    ["div and span still have a place", "When no semantic element fits, <div> (block) and <span> (inline) are neutral containers for styling and scripting hooks. Use them for pure layout/grouping — but reach for a semantic element first whenever one describes the content.", '<div class="card">        <!-- styling wrapper, no semantic meaning -->\n  <span class="badge">New</span>\n</div>'],
+                ],
+                ex: "Rebuild a plain div-based page using semantic elements: a header with the site title, a nav with a menu, a main containing an article and an aside, and a footer. Keep div/span only where no semantic element fits.",
+                tips: ["Semantic tags (header/nav/main/article/…) describe regions", "article = self-contained; section = themed group; aside = tangential", "div/span for neutral styling hooks when nothing semantic fits"],
+            },
+            {
+                t: "Block, Inline, and Document Flow", s: "html-block-inline",
+                e: "Understand how elements lay themselves out by default — the basis of all page layout.",
+                sec: [
+                    ["Block vs inline", "By default, block elements (div, p, h1, section, ul) start on a new line and fill the available width. Inline elements (span, a, strong, img) sit within a line and take only as much width as their content. This default 'display' behavior shapes every layout.", '<p>A block element</p>          <!-- new line, full width -->\n<span>inline</span> <span>inline</span>   <!-- same line -->'],
+                    ["Document flow", "The browser lays elements out top to bottom (block) and left to right (inline) in 'normal flow.' Understanding this default is essential before you override it with CSS — most layout is guiding or adjusting the natural flow, not fighting it.", '<!-- these stack vertically in source order -->\n<header>...</header>\n<main>...</main>\n<footer>...</footer>'],
+                    ["Changing display with CSS", "CSS's display property changes the box type: inline-block combines both behaviors, none removes an element, and flex/grid (a later CSS topic) create powerful layouts. Even here, the mental model is 'these are the defaults CSS adjusts.'", '/* the layout tools that override defaults live in CSS: */\n.nav { display: flex; }\n.hidden { display: none; }'],
+                ],
+                ex: "Create a page demonstrating the difference: several block elements that stack, and inline elements (links, spans) that flow on one line. Add an image and observe it's inline by default. Note in comments how CSS display would change each.",
+                tips: ["Block elements stack full-width; inline flow within a line", "Normal flow: block top-to-bottom, inline left-to-right", "CSS display (inline-block/none/flex/grid) overrides the defaults"],
+            },
+            {
+                t: "Multimedia: Audio, Video, and Embeds", s: "html-media",
+                e: "Add sound, video, and embedded content natively — no plugins required.",
+                sec: [
+                    ["Video and audio", "The <video> and <audio> elements play media natively with the controls attribute for a player UI. Provide multiple <source> formats for browser compatibility, and fallback text for unsupported browsers. Attributes like autoplay, loop, and muted tune behavior.", '<video controls width="600" poster="thumb.jpg">\n  <source src="clip.mp4" type="video/mp4">\n  <source src="clip.webm" type="video/webm">\n  Your browser does not support video.\n</video>\n<audio controls src="song.mp3"></audio>'],
+                    ["Embedding with iframe", "<iframe> embeds another web page or widget — maps, videos from platforms, payment forms. Set title (for accessibility), and use loading=\"lazy\" so off-screen iframes load only when needed. Be mindful iframes have security and performance costs.", '<iframe src="https://www.youtube.com/embed/ID"\n        title="Demo video" loading="lazy"\n        width="560" height="315"></iframe>'],
+                    ["Figures and captions", "Wrap media in <figure> with a <figcaption> to associate a caption semantically — for images, videos, code, or diagrams. This groups the media and its description meaningfully rather than with a loose paragraph.", '<figure>\n  <img src="chart.png" alt="Revenue by quarter">\n  <figcaption>Figure 1: Revenue grew each quarter.</figcaption>\n</figure>'],
+                ],
+                ex: "Build a media page with a <video> offering two source formats and a poster, an <audio> clip, an embedded map or video via a lazy-loaded iframe with a title, and an image wrapped in a figure with a figcaption.",
+                tips: ["video/audio play natively; give multiple <source> formats", "iframe embeds pages/widgets — add title and loading=\"lazy\"", "figure + figcaption semantically pairs media with a caption"],
+            },
+            {
+                t: "The Head Section and Metadata", s: "html-head",
+                e: "Configure the invisible part of the page that browsers, search engines, and social platforms read.",
+                sec: [
+                    ["Essential meta tags", "The <head> holds metadata: <meta charset=\"UTF-8\"> (character encoding — always include), the <title> (browser tab and search result heading), and the responsive viewport meta that makes pages mobile-friendly. These three are on virtually every page.", '<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>Page Title — Site Name</title>\n</head>'],
+                    ["SEO and social metadata", "<meta name=\"description\"> gives search engines a summary snippet. Open Graph tags (og:title, og:image, og:description) control how a link looks when shared on social media. These aren't visible on the page but shape how it appears elsewhere.", '<meta name="description" content="A concise page summary for search.">\n<meta property="og:title" content="Shareable title">\n<meta property="og:image" content="https://site.com/preview.jpg">'],
+                    ["Linking CSS, scripts, and icons", "The head links external resources: <link rel=\"stylesheet\"> for CSS, <link rel=\"icon\"> for the favicon, and <script src defer> for JavaScript. Loading order and attributes (defer/async) affect performance.", '<link rel="stylesheet" href="style.css">\n<link rel="icon" href="favicon.ico">\n<script src="app.js" defer></script>'],
+                ],
+                ex: "Write a complete, production-ready <head>: charset, responsive viewport, a descriptive title and meta description, Open Graph tags for sharing, a linked stylesheet, a favicon, and a deferred script.",
+                tips: ["Always include charset, viewport, and a descriptive title", "meta description + Open Graph shape search and social previews", "Link CSS/favicon/JS in the head; use defer for scripts"],
+            },
+            {
+                t: "Page Layout with Semantic Structure", s: "html-layout",
+                e: "Assemble full page layouts using semantic regions as the scaffold for CSS.",
+                sec: [
+                    ["The classic page skeleton", "A typical page composes semantic regions: a header (branding + nav), a main area (often with an article and an aside), and a footer. This structure is meaningful on its own and gives CSS clean hooks to arrange into columns and grids.", '<body>\n  <header><nav>...</nav></header>\n  <main>\n    <article>...</article>\n    <aside>...</aside>\n  </main>\n  <footer>...</footer>\n</body>'],
+                    ["Structure first, style later", "Write the HTML to reflect content and meaning before thinking about visual arrangement. A well-structured document is already usable and accessible without any CSS — styling then arranges the same markup into the desired layout at each screen size.", '<!-- meaningful order in the source = accessible by default -->'],
+                    ["How CSS arranges it", "Modern layout uses CSS Flexbox (one-dimensional rows/columns) and Grid (two-dimensional layouts) applied to these semantic containers — covered fully in a CSS course. The takeaway here: good HTML structure makes good CSS layout straightforward.", '/* applied to your semantic HTML in CSS: */\nmain { display: grid; grid-template-columns: 2fr 1fr; }'],
+                ],
+                ex: "Build the complete semantic skeleton for a blog homepage: header with nav, main containing several article previews and an aside with categories, and a footer. Ensure the source order reads logically top to bottom before any styling.",
+                tips: ["Compose pages from semantic regions as CSS scaffolding", "Structure content meaningfully first — usable without CSS", "Flexbox/Grid (CSS) arrange these semantic containers"],
+            },
+        ],
+        Advanced: [
+            {
+                t: "Form Validation", s: "html-forms-validation",
+                e: "Catch bad input before submission using HTML's built-in validation attributes.",
+                sec: [
+                    ["Built-in validation attributes", "HTML validates without JavaScript: required makes a field mandatory, min/max and minlength/maxlength bound values, type=\"email\"/\"url\" check format, and the form won't submit until valid. Browsers show native error messages.", '<input type="email" name="email" required>\n<input type="text" name="user" minlength="3" maxlength="20" required>\n<input type="number" name="qty" min="1" max="99" required>'],
+                    ["Pattern matching", "The pattern attribute validates against a regular expression for custom formats — postal codes, phone numbers, usernames. Pair it with title to describe the expected format in the error message.", '<input type="text" name="pin"\n       pattern="[0-9]{6}"\n       title="6-digit PIN code" required>'],
+                    ["Styling and scripting validation", "CSS pseudo-classes (:valid, :invalid, :required) style fields by state. For custom rules and messages, the Constraint Validation API in JavaScript (checkValidity, setCustomValidity) extends the built-ins. Always re-validate on the server too — client validation is for UX, not security.", '/* CSS */\ninput:invalid { border-color: red; }\n/* JS */\nif (!input.checkValidity()) input.setCustomValidity("Custom message");'],
+                ],
+                ex: "Build a form using required, type-based validation (email), minlength on a username, min/max on a number, and a pattern for a 6-digit PIN with a helpful title. Style invalid fields red with CSS, and note why the server must re-validate.",
+                tips: ["required/min/max/minlength + type give free validation", "pattern validates custom formats; title explains them", "Style with :valid/:invalid; always re-validate server-side"],
+            },
+            {
+                t: "Accessibility (a11y)", s: "html-accessibility",
+                e: "Build pages usable by everyone, including people using screen readers and keyboards.",
+                sec: [
+                    ["Semantic HTML is accessibility", "The single biggest accessibility win is correct semantic HTML: real headings in order, buttons for actions (not clickable divs), labels on inputs, and alt on images. Screen readers rely on these to convey and navigate the page. Get the HTML right and most accessibility follows.", '<button onclick="save()">Save</button>   <!-- not <div onclick> -->\n<label for="q">Search</label><input id="q">\n<img src="x.jpg" alt="Describes the image">'],
+                    ["ARIA when HTML isn't enough", "ARIA attributes (roles, states, properties) add accessibility information to custom widgets HTML can't express — aria-label for icon-only buttons, aria-expanded for toggles, role for custom components. The first rule of ARIA: prefer a native element over ARIA when one exists.", '<button aria-label="Close" aria-expanded="false">×</button>\n<nav aria-label="Breadcrumb">...</nav>\n<div role="alert">Form saved</div>'],
+                    ["Keyboard and focus", "Everything must work with a keyboard: interactive elements should be reachable with Tab and operable with Enter/Space, focus must be visible, and focus should be managed in modals and after navigation. Native elements handle most of this for free — another reason to use them.", '<!-- native button/link/input are keyboard-accessible by default -->\n<a href="#main" class="skip-link">Skip to content</a>'],
+                ],
+                ex: "Audit and fix a page: replace any clickable divs with buttons, add labels to all inputs and alt to all images, give icon-only buttons an aria-label, add a skip-to-content link, and test that you can operate everything with only the keyboard.",
+                tips: ["Correct semantic HTML delivers most accessibility for free", "Use ARIA only when no native element fits (label icons, states)", "Everything must be keyboard-operable with visible focus"],
+            },
+            {
+                t: "SEO-Friendly HTML and Structured Data", s: "html-seo",
+                e: "Structure pages so search engines understand and rank them well.",
+                sec: [
+                    ["On-page SEO fundamentals", "Search engines read your HTML: a unique, descriptive <title> and meta description per page, one <h1> that states the topic, a logical heading hierarchy, descriptive link text (not 'click here'), and alt text on images. Good semantic structure is good SEO.", '<title>Beginner\'s Guide to Composting | GreenSite</title>\n<meta name="description" content="Learn composting step by step…">\n<h1>The Beginner\'s Guide to Composting</h1>'],
+                    ["Structured data (Schema.org)", "Structured data (usually JSON-LD in a script tag) describes your content's meaning to search engines — an article's author and date, a product's price and rating, an FAQ's questions — enabling rich results (stars, prices, FAQ dropdowns) in search listings.", '<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "Article",\n  "headline": "The Beginner\'s Guide to Composting",\n  "author": { "@type": "Person", "name": "Asha" }\n}\n</script>'],
+                    ["Technical SEO signals", "Beyond content: a canonical link tag prevents duplicate-content issues, semantic HTML and fast load times help ranking, a descriptive URL structure and a sitemap aid crawling, and mobile-friendliness (the viewport meta) is a ranking factor. HTML is where much of this is expressed.", '<link rel="canonical" href="https://site.com/guide">\n<meta name="robots" content="index, follow">'],
+                ],
+                ex: "Optimize a page for search: write a unique title and meta description, ensure a single topical h1 and logical headings, add descriptive alt/link text, add JSON-LD Article structured data, and include canonical and viewport tags.",
+                tips: ["Unique title/description, one topical h1, descriptive links/alt", "JSON-LD structured data enables rich search results", "Canonical tags, semantics, speed, and mobile aid ranking"],
+            },
+            {
+                t: "HTML5 APIs: Storage, Geolocation, and More", s: "html5-apis",
+                e: "The browser capabilities HTML5 unlocked for building real web applications.",
+                sec: [
+                    ["Web Storage", "localStorage and sessionStorage let pages save key-value data in the browser — localStorage persists across sessions, sessionStorage lasts until the tab closes. Perfect for preferences, drafts, and small state, with no server needed. Values are strings, so serialize objects with JSON.", 'localStorage.setItem("theme", "dark");\nlocalStorage.getItem("theme");        // "dark"\nlocalStorage.setItem("cart", JSON.stringify(items));'],
+                    ["Geolocation and device APIs", "The Geolocation API asks permission then provides the user's coordinates — for maps, local search, delivery. HTML5 also brought APIs for drag-and-drop, the clipboard, notifications, and media capture, turning the browser into an app platform.", 'navigator.geolocation.getCurrentPosition(\n  (pos) => console.log(pos.coords.latitude, pos.coords.longitude),\n  (err) => console.error(err)\n);'],
+                    ["Canvas and offline", "The <canvas> element provides a scriptable drawing surface for graphics, charts, and games (via a JavaScript context). Service Workers and the Cache API enable offline-capable Progressive Web Apps. These APIs are where HTML meets application development.", '<canvas id="c" width="300" height="150"></canvas>\n<script>\n  const ctx = document.getElementById("c").getContext("2d");\n  ctx.fillStyle = "orange";\n  ctx.fillRect(10, 10, 100, 80);\n</script>'],
+                ],
+                ex: "Build a page that saves a user preference (like a chosen color) to localStorage and restores it on reload, requests the user's location with the Geolocation API (handling permission denial), and draws a simple shape on a canvas.",
+                tips: ["localStorage/sessionStorage save key-value data (strings)", "Geolocation and device APIs need permission and error handling", "Canvas draws graphics; Service Workers enable offline PWAs"],
+            },
+            {
+                t: "Responsive Images and Media", s: "html-responsive",
+                e: "Serve the right image for every screen size and resolution — faster pages, sharper visuals.",
+                sec: [
+                    ["The viewport meta tag", "Responsive design starts in HTML with the viewport meta tag, telling mobile browsers to use the device width instead of pretending to be a desktop. Without it, responsive CSS won't work correctly on phones.", '<meta name="viewport" content="width=device-width, initial-scale=1">'],
+                    ["srcset and sizes", "The srcset attribute offers the browser multiple image resolutions and lets it pick the best for the device's screen and pixel density; sizes tells it how big the image will display. This delivers small images to phones and crisp ones to high-DPI screens automatically.", '<img src="photo-800.jpg"\n     srcset="photo-400.jpg 400w, photo-800.jpg 800w, photo-1200.jpg 1200w"\n     sizes="(max-width: 600px) 100vw, 50vw"\n     alt="A scenic view">'],
+                    ["The picture element", "For art direction — showing a different crop or image per screen size (not just resolution) — <picture> with <source media=\"...\"> gives full control, and it's also how you offer modern formats (WebP/AVIF) with a fallback.", '<picture>\n  <source srcset="hero.avif" type="image/avif">\n  <source srcset="hero.webp" type="image/webp">\n  <img src="hero.jpg" alt="Hero image">\n</picture>'],
+                ],
+                ex: "Make images responsive: add the viewport meta tag, use srcset/sizes to serve three resolutions of a content image, and use <picture> to offer an AVIF/WebP image with a JPEG fallback and a different crop on small screens.",
+                tips: ["The viewport meta tag is required for responsive design", "srcset/sizes let the browser pick the best resolution", "<picture> for art direction and modern formats with fallback"],
+            },
+            {
+                t: "Templates and Web Components", s: "html-web-components",
+                e: "Reusable, encapsulated custom elements — the native component model of the web platform.",
+                sec: [
+                    ["The template element", "<template> holds inert HTML that isn't rendered until you clone it with JavaScript — the native way to define reusable markup fragments (list rows, cards) without building strings. Its content is parsed but not displayed or run.", '<template id="card">\n  <div class="card"><h3></h3><p></p></div>\n</template>\n<script>\n  const node = document.getElementById("card").content.cloneNode(true);\n  document.body.append(node);\n</script>'],
+                    ["Custom elements", "The Custom Elements API lets you define your own HTML tags backed by a JavaScript class — <user-card>, <star-rating> — that encapsulate structure and behavior and are usable like any built-in element. This is the standards-based foundation frameworks build upon.", 'class UserCard extends HTMLElement {\n  connectedCallback() { this.innerHTML = "<p>Hello component</p>"; }\n}\ncustomElements.define("user-card", UserCard);\n// <user-card></user-card>'],
+                    ["Shadow DOM for encapsulation", "The Shadow DOM gives a component its own isolated DOM and scoped styles that don't leak in or out — true encapsulation. Together, custom elements + templates + shadow DOM are 'Web Components,' the browser-native way to build reusable UI without a framework.", 'const shadow = this.attachShadow({ mode: "open" });\nshadow.innerHTML = "<style>p{color:orange}</style><p>Scoped</p>";'],
+                ],
+                ex: "Build a reusable component: define a <template> for a card, create a custom element that clones it and fills content from attributes, and attach a shadow root with scoped styles. Use your new tag several times on a page.",
+                tips: ["<template> holds inert, cloneable markup", "Custom Elements define your own tags backed by a JS class", "Shadow DOM scopes a component's DOM and styles"],
+            },
+            {
+                t: "HTML Best Practices and Validation", s: "html-best-practices",
+                e: "The habits and tools that keep HTML clean, correct, and maintainable.",
+                sec: [
+                    ["Write valid, clean HTML", "Validate your markup with the W3C validator to catch unclosed tags, misnesting, and duplicate ids — errors that cause subtle rendering and accessibility bugs. Consistent indentation, lowercase tags/attributes, and quoted values keep code readable.", '<!-- run your pages through validator.w3.org -->\n<!-- one <h1>, unique ids, properly nested, alt on images -->'],
+                    ["Separation of concerns", "Keep structure (HTML), presentation (CSS), and behavior (JavaScript) separate: avoid inline styles and inline event handlers, use external files, and let HTML describe content while CSS and JS live elsewhere. This makes each easier to maintain and reuse.", '<!-- avoid --> <p style="color:red" onclick="go()">\n<!-- prefer --> <p class="alert" id="notice">   (styles in CSS, handlers in JS)'],
+                    ["Performance and correctness checklist", "Habits that matter: always include lang, charset, and viewport; add alt to images and labels to inputs; use semantic elements; defer scripts; lazy-load below-the-fold images and iframes; and don't skip heading levels. These are small and compounding.", '<html lang="en">\n<img src="x.jpg" alt="…" loading="lazy">\n<script src="app.js" defer></script>'],
+                ],
+                ex: "Take an older, messy HTML page and modernize it: validate it and fix all errors, remove inline styles and handlers into external files, add missing lang/alt/labels, apply semantic elements, and add defer/lazy loading. Re-validate to confirm zero errors.",
+                tips: ["Validate with the W3C validator; fix nesting/id/alt errors", "Separate HTML structure from CSS style and JS behavior", "Always set lang/charset/viewport, alt, labels, semantics, defer/lazy"],
+            },
+        ],
+    },
+}

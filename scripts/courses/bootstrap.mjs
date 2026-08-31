@@ -1,0 +1,267 @@
+export const BOOTSTRAP = {
+    name: "Bootstrap",
+    palette: ["#7952b3", "#a855f7"],
+    kw: "bootstrap,webdesign,css",
+    images: ["1507721999472-8ed4421c4af2", "1517180102446-f3ece451e9d8", "1467232004584-a241de8bcf5d"],
+    levels: {
+        Basic: [
+            {
+                t: "What Bootstrap Is and How to Add It", s: "bootstrap-intro-setup",
+                e: "Understand what Bootstrap gives you and get it working in a page in two minutes.",
+                sec: [
+                    ["A CSS framework of ready-made styles", "Bootstrap is a front-end framework: a large set of prebuilt CSS classes (and a few JavaScript widgets) for buttons, grids, forms, navbars, and more. Instead of writing CSS from scratch, you compose designs by adding classes to HTML — fast, consistent, and responsive by default."],
+                    ["Adding Bootstrap via CDN", "The quickest start is a CDN: one stylesheet link in the head, and (for interactive components) one script before the closing body tag. No build step, works instantly. For real projects you can also install via npm and import it.", '<!-- in <head> -->\n<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">\n<!-- before </body> -->\n<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>'],
+                    ["How you use it", "Everything is class-driven. You add utility and component classes to plain HTML elements; Bootstrap's stylesheet does the rest. Understanding this class-composition model is the whole skill — the rest is learning which classes exist.", '<button class="btn btn-primary">Primary button</button>\n<div class="alert alert-success">It works!</div>'],
+                ],
+                ex: "Create an HTML page, add Bootstrap via the CDN links, and confirm it works by rendering a primary button and a success alert. Resize the window to see that Bootstrap's base styles already look polished.",
+                tips: ["Bootstrap is prebuilt CSS classes you compose onto HTML", "CDN links (CSS in head, JS bundle before </body>) = instant start", "You style by adding classes, not writing CSS"],
+            },
+            {
+                t: "The Grid System and Containers", s: "bootstrap-grid-containers",
+                e: "Build responsive layouts with Bootstrap's 12-column grid — the heart of the framework.",
+                sec: [
+                    ["Containers", "A container wraps and centers your content with sensible padding. .container is fixed-width per breakpoint; .container-fluid spans the full width. Almost every layout starts inside one.", '<div class="container">\n    <!-- centered, padded content -->\n</div>\n<div class="container-fluid">\n    <!-- full width -->\n</div>'],
+                    ["Rows and columns", "The grid divides each row into 12 columns. Put a .row inside a container and .col elements inside it; Bootstrap splits the width. Specify a number (col-6 = half) or let auto columns share space equally.", '<div class="container">\n    <div class="row">\n        <div class="col-6">Half</div>\n        <div class="col-6">Half</div>\n    </div>\n    <div class="row">\n        <div class="col">Auto</div>\n        <div class="col">Auto</div>\n        <div class="col">Auto</div>\n    </div>\n</div>'],
+                    ["Responsive columns", "Breakpoint infixes make columns adapt: col-12 col-md-6 col-lg-4 means full width on phones, half on tablets, a third on desktops. This mobile-first pattern is how Bootstrap achieves responsive layouts with no media queries of your own.", '<div class="row">\n    <div class="col-12 col-md-6 col-lg-4">Adapts by screen size</div>\n    <div class="col-12 col-md-6 col-lg-4">…</div>\n    <div class="col-12 col-md-6 col-lg-4">…</div>\n</div>'],
+                ],
+                ex: "Build a responsive 3-card layout: full width on mobile, two per row on tablets, three per row on desktops, all inside a centered container. Resize to confirm the columns rearrange.",
+                tips: ["Container wraps/centers; -fluid goes full width", "row + col split 12 columns; col-6 = half", "col-{breakpoint}-{n} makes columns responsive, mobile-first"],
+            },
+            {
+                t: "Typography and Text Utilities", s: "bootstrap-typography",
+                e: "Style headings, text, and alignment with Bootstrap's typographic classes.",
+                sec: [
+                    ["Headings and display text", "Bootstrap styles h1–h6 automatically, and offers matching heading classes (.h1–.h6) to give any element a heading's look. For hero text, display classes (.display-1 to .display-6) render large, prominent headings.", '<h1>Standard heading</h1>\n<p class="h3">Looks like an h3</p>\n<h1 class="display-4">Big display heading</h1>'],
+                    ["Text utilities", "A rich set of classes controls text: alignment (.text-center, .text-end), transform (.text-uppercase), weight (.fw-bold, .fw-light), style (.fst-italic), and size (.fs-1 to .fs-6). Lead paragraphs use .lead for emphasis.", '<p class="lead text-center">An emphasized, centered intro.</p>\n<p class="text-uppercase fw-bold">Bold uppercase</p>\n<p class="fst-italic text-muted">Muted italic note</p>'],
+                    ["Colors and truncation", "Text color utilities (.text-primary, .text-danger, .text-muted, .text-white) apply the theme palette, and .text-truncate cuts overflowing text with an ellipsis. These utilities cover most everyday text styling without custom CSS.", '<span class="text-success">Success</span>\n<div class="text-truncate" style="max-width: 150px;">A very long line that will be cut…</div>'],
+                ],
+                ex: "Create a mini article: a display heading, a .lead intro, a body paragraph with a bold and a muted span, and a right-aligned caption — using only Bootstrap text utilities, no custom CSS.",
+                tips: [".h1–.h6 and .display-* give heading looks to any element", "Text utilities: alignment, weight, transform, size, style", "Theme color classes (.text-primary etc.) and .text-truncate"],
+            },
+            {
+                t: "Colors, Backgrounds, and Buttons", s: "bootstrap-colors-buttons",
+                e: "Apply Bootstrap's theme palette to backgrounds and build every kind of button.",
+                sec: [
+                    ["The theme color system", "Bootstrap ships semantic colors — primary, secondary, success, danger, warning, info, light, dark — used consistently across components. Background utilities (.bg-primary, .bg-danger) and text utilities share these names, so your UI stays coherent.", '<div class="bg-primary text-white p-3">Primary background</div>\n<div class="bg-light text-dark p-3">Light background</div>'],
+                    ["Buttons", "The .btn base class plus a variant (.btn-primary, .btn-danger) makes a styled button. Outline variants (.btn-outline-primary) give a bordered look, and sizes (.btn-lg, .btn-sm) adjust scale. Works on <button>, <a>, and <input>.", '<button class="btn btn-primary">Save</button>\n<button class="btn btn-outline-danger">Delete</button>\n<a href="#" class="btn btn-success btn-lg">Get started</a>'],
+                    ["Button states and groups", "Add .disabled or the disabled attribute for inactive buttons, and wrap several in .btn-group to join them into a toolbar. These small touches cover most button needs without any custom styling.", '<div class="btn-group">\n    <button class="btn btn-secondary">Left</button>\n    <button class="btn btn-secondary">Middle</button>\n    <button class="btn btn-secondary">Right</button>\n</div>'],
+                ],
+                ex: "Build a small toolbar: a primary 'Save', an outline 'Cancel', and a danger 'Delete' — plus a grouped set of three buttons. Add one disabled button and one large call-to-action link styled as a button.",
+                tips: ["Semantic colors (primary/success/danger…) unify the UI", "bg-* for backgrounds, text-* for text, all sharing names", ".btn + variant; outline, sizes, groups, and disabled states"],
+            },
+            {
+                t: "Tables and Images", s: "bootstrap-tables-images",
+                e: "Present tabular data and media cleanly with Bootstrap's table and image classes.",
+                sec: [
+                    ["Styling tables", "Add .table to any <table> for clean borders and spacing. Modifiers layer on: .table-striped (zebra rows), .table-hover (row highlight), .table-bordered, and .table-dark. Combine them freely.", '<table class="table table-striped table-hover">\n    <thead><tr><th>Name</th><th>Role</th></tr></thead>\n    <tbody>\n        <tr><td>Asha</td><td>Admin</td></tr>\n        <tr><td>Ravi</td><td>Editor</td></tr>\n    </tbody>\n</table>'],
+                    ["Responsive tables", "Wide tables overflow on small screens. Wrap the table in .table-responsive to make it scroll horizontally instead of breaking the layout — essential for data-heavy tables on mobile.", '<div class="table-responsive">\n    <table class="table">…</table>\n</div>'],
+                    ["Images", "Image utilities make media behave: .img-fluid scales an image to its container (responsive), .rounded and .rounded-circle shape it, and .img-thumbnail adds a bordered frame. Pair with the grid for galleries.", '<img src="/photo.jpg" class="img-fluid rounded" alt="Responsive">\n<img src="/avatar.jpg" class="rounded-circle" width="80" alt="Avatar">'],
+                ],
+                ex: "Build a striped, hover-highlighted table of five records wrapped for responsive scrolling, and a small image gallery using the grid where each image is .img-fluid and rounded.",
+                tips: [".table + striped/hover/bordered/dark modifiers", "Wrap wide tables in .table-responsive for mobile scroll", ".img-fluid for responsive images; rounded/circle/thumbnail"],
+            },
+            {
+                t: "Spacing and Sizing Utilities", s: "bootstrap-spacing-sizing",
+                e: "Control margins, padding, and dimensions with Bootstrap's utility shorthand.",
+                sec: [
+                    ["The spacing shorthand", "Bootstrap's most-used utilities set margin (m) and padding (p) with a side and a size: m/p + t/b/s/e/x/y + 0–5 (or auto). So mt-3 is margin-top level 3, px-4 is horizontal padding level 4, my-auto centers vertically. This replaces most spacing CSS.", '<div class="mt-3 mb-5">Top margin 3, bottom margin 5</div>\n<div class="p-4">Padding on all sides</div>\n<div class="px-2 py-4">Different x and y padding</div>'],
+                    ["Sizing", "Width and height utilities set common sizes: .w-25/.w-50/.w-75/.w-100 (percentages) and .h-100, plus .mw-100/.mh-100 for max dimensions. Handy for making elements fill or share space without custom rules.", '<div class="w-50">Half the parent width</div>\n<img src="/x.jpg" class="w-100" alt="Full-width image">'],
+                    ["Gaps and auto margins", "In flex and grid layouts, gap utilities (.gap-2, .gap-4) space children, and auto margins (.ms-auto, .me-auto) push elements apart — the classic trick for a navbar with items on both ends.", '<div class="d-flex gap-3">\n    <span>One</span><span>Two</span>\n    <span class="ms-auto">Pushed right</span>\n</div>'],
+                ],
+                ex: "Recreate a card's internal spacing using only utilities: padding around the content, margin between a title and body, a full-width button, and a footer row where one item is pushed to the far right with ms-auto.",
+                tips: ["m/p + side + 0–5 sets margin/padding fast", "w-*/h-* size elements by percentage", "gap-* spaces flex children; ms-auto/me-auto push apart"],
+            },
+            {
+                t: "Flexbox Utilities", s: "bootstrap-flexbox",
+                e: "Align and distribute elements using Bootstrap's flexbox class helpers.",
+                sec: [
+                    ["Turning on flex", "Add .d-flex to lay children in a row, or .flex-column for a vertical stack. This unlocks the whole flexbox toolkit through classes — no custom CSS needed for most alignment tasks.", '<div class="d-flex">\n    <div>Item 1</div><div>Item 2</div><div>Item 3</div>\n</div>\n<div class="d-flex flex-column">Stacked vertically</div>'],
+                    ["Alignment", "justify-content-* controls the main axis (start, center, end, between, around, evenly); align-items-* controls the cross axis (start, center, end, stretch). Together they center or distribute content precisely.", '<div class="d-flex justify-content-between align-items-center">\n    <span>Left</span>\n    <span>Center-aligned vertically</span>\n    <span>Right</span>\n</div>'],
+                    ["Wrapping and responsive flex", "flex-wrap lets items flow onto new lines, flex-fill makes items share space, and breakpoint variants (d-md-flex, flex-lg-row) change layout by screen size — e.g. stack on mobile, row on desktop.", '<div class="d-flex flex-column flex-md-row gap-3">\n    <div class="flex-fill">Column on phone, row on tablet+</div>\n    <div class="flex-fill">…</div>\n</div>'],
+                ],
+                ex: "Build a header bar with a logo on the left and nav links on the right using d-flex + justify-content-between + align-items-center. Then make a feature section that stacks vertically on mobile and becomes a row on medium screens.",
+                tips: ["d-flex / flex-column start a flex layout", "justify-content-* (main) and align-items-* (cross) align", "flex-wrap, flex-fill, and breakpoint variants for responsive flex"],
+            },
+            {
+                t: "Display, Borders, and Shadows", s: "bootstrap-display-borders",
+                e: "Show, hide, and decorate elements with display, border, and shadow utilities.",
+                sec: [
+                    ["Display and responsive visibility", "Display utilities set how elements render (.d-none, .d-block, .d-inline, .d-flex) and — crucially — combine with breakpoints to show or hide content per screen size: .d-none .d-md-block hides on phones, shows on tablets up.", '<div class="d-none d-lg-block">Only on large screens</div>\n<div class="d-block d-lg-none">Only on small screens</div>'],
+                    ["Borders and rounding", "Border utilities add or remove borders (.border, .border-top, .border-0), color them (.border-primary), and round corners (.rounded, .rounded-3, .rounded-circle). Quick decoration without writing CSS.", '<div class="border border-primary rounded-3 p-3">Bordered, rounded box</div>'],
+                    ["Shadows and position", "Shadow utilities (.shadow-sm, .shadow, .shadow-lg) add depth, and position utilities (.position-relative/absolute/fixed/sticky, plus .top-0, .start-0) place elements — enough for badges, sticky headers, and overlays.", '<div class="shadow-lg p-4 rounded">Elevated card</div>\n<div class="position-sticky top-0">Sticks to the top on scroll</div>'],
+                ],
+                ex: "Build a card with a border, rounded corners, and a large shadow that hides on mobile (d-none d-md-block). Add a small badge positioned absolutely in its top-right corner using position utilities.",
+                tips: ["d-* + breakpoints show/hide content responsively", "Border and rounded utilities decorate without CSS", "shadow-* for depth; position-* + top/start for placement"],
+            },
+        ],
+        Intermediate: [
+            {
+                t: "Cards", s: "bootstrap-cards",
+                e: "Build one of Bootstrap's most versatile components for content, products, and profiles.",
+                sec: [
+                    ["Card anatomy", "A .card is a flexible container with optional .card-header, .card-body, .card-title, .card-text, and .card-footer. Compose these pieces for anything from a blog preview to a pricing box.", '<div class="card" style="width: 18rem;">\n    <div class="card-body">\n        <h5 class="card-title">Title</h5>\n        <p class="card-text">Some quick content.</p>\n        <a href="#" class="btn btn-primary">Go</a>\n    </div>\n</div>'],
+                    ["Images and lists in cards", "Add .card-img-top for a header image, or .list-group inside for structured rows. Cards accept most other components, making them ideal building blocks.", '<div class="card">\n    <img src="/photo.jpg" class="card-img-top" alt="">\n    <div class="card-body"><h5 class="card-title">With image</h5></div>\n</div>'],
+                    ["Card grids", "Combine cards with the grid or with .row-cols utilities to build responsive card layouts. .row-cols-1 .row-cols-md-3 lays one card per row on phones and three on tablets — the standard product/blog listing pattern.", '<div class="row row-cols-1 row-cols-md-3 g-4">\n    <div class="col"><div class="card">…</div></div>\n    <div class="col"><div class="card">…</div></div>\n    <div class="col"><div class="card">…</div></div>\n</div>'],
+                ],
+                ex: "Build a responsive gallery of six product cards (image, title, price, and a Buy button) that shows one per row on mobile, two on tablets, and three on desktops using row-cols and gutter utilities.",
+                tips: ["Cards compose header/body/title/text/footer pieces", "card-img-top and list-group nest cleanly inside cards", "row-cols-* + g-* build responsive card grids"],
+            },
+            {
+                t: "Navbar and Navigation", s: "bootstrap-navbar",
+                e: "Create a responsive navigation bar that collapses into a hamburger menu on mobile.",
+                sec: [
+                    ["The responsive navbar", "The .navbar component with .navbar-expand-{breakpoint} builds a bar that shows links inline on large screens and collapses to a toggle button on small ones. The JavaScript bundle powers the toggle.", '<nav class="navbar navbar-expand-lg bg-body-tertiary">\n    <div class="container-fluid">\n        <a class="navbar-brand" href="#">Brand</a>\n        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav">\n            <span class="navbar-toggler-icon"></span>\n        </button>\n        <div class="collapse navbar-collapse" id="nav">\n            <ul class="navbar-nav">\n                <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>\n                <li class="nav-item"><a class="nav-link" href="#">About</a></li>\n            </ul>\n        </div>\n    </div>\n</nav>'],
+                    ["Nav components", "Beyond the navbar, .nav, .nav-tabs, and .nav-pills style standalone navigation and tabbed interfaces. Mark the current page with .active and disabled items with .disabled.", '<ul class="nav nav-pills">\n    <li class="nav-item"><a class="nav-link active" href="#">Active</a></li>\n    <li class="nav-item"><a class="nav-link" href="#">Link</a></li>\n</ul>'],
+                    ["Placement and theming", "Utilities position the navbar (fixed-top, sticky-top) and background/color utilities theme it. Put the brand, links, and a right-aligned action (using ms-auto) together for a complete header.", '<nav class="navbar sticky-top bg-dark" data-bs-theme="dark">…</nav>'],
+                ],
+                ex: "Build a complete responsive navbar: a brand, three nav links (one active), a right-aligned 'Sign in' button (ms-auto), and a working hamburger toggle on mobile. Make it stick to the top on scroll.",
+                tips: ["navbar + navbar-expand-* collapses to a toggle on mobile", "The JS bundle powers the hamburger collapse", "nav-tabs/nav-pills for tabbed nav; fixed/sticky for placement"],
+            },
+            {
+                t: "Forms and Input Groups", s: "bootstrap-forms",
+                e: "Style forms consistently and combine inputs with labels, buttons, and icons.",
+                sec: [
+                    ["Form controls", "Apply .form-control to inputs and textareas, .form-select to selects, and .form-label to labels for consistent, accessible styling. .form-check styles checkboxes and radios. Everything aligns and spaces correctly out of the box.", '<div class="mb-3">\n    <label class="form-label" for="email">Email</label>\n    <input type="email" class="form-control" id="email" placeholder="you@example.com">\n</div>\n<div class="form-check">\n    <input class="form-check-input" type="checkbox" id="agree">\n    <label class="form-check-label" for="agree">I agree</label>\n</div>'],
+                    ["Input groups", "Input groups attach text, icons, or buttons to an input — for currency symbols, units, or a search button — by wrapping them together. This creates polished compound fields without custom layout.", '<div class="input-group">\n    <span class="input-group-text">₹</span>\n    <input type="number" class="form-control" placeholder="Amount">\n    <button class="btn btn-primary">Add</button>\n</div>'],
+                    ["Layout and sizing", "Lay forms out with the grid (.row + .col for side-by-side fields), size controls with .form-control-lg/sm, and add help text with .form-text. Combine with spacing utilities for clean, responsive forms.", '<div class="row">\n    <div class="col"><input class="form-control" placeholder="First"></div>\n    <div class="col"><input class="form-control" placeholder="Last"></div>\n</div>'],
+                ],
+                ex: "Build a sign-up form: labeled email and password fields, a currency input group for a budget, a terms checkbox, and first/last name side by side using the grid — all styled with Bootstrap form classes.",
+                tips: ["form-control/form-select/form-check style inputs consistently", "Input groups attach text, icons, or buttons to fields", "Use the grid for multi-column forms; form-text for hints"],
+            },
+            {
+                t: "List Groups, Badges, and Alerts", s: "bootstrap-listgroups-badges-alerts",
+                e: "Present lists, counts, and messages with three everyday components.",
+                sec: [
+                    ["List groups", "A .list-group displays a series of items — plain, linked, or interactive. Add .list-group-item-action for hover/active states, contextual colors, and flex utilities for items with content on both ends.", '<ul class="list-group">\n    <li class="list-group-item d-flex justify-content-between align-items-center">\n        Inbox <span class="badge bg-primary">14</span>\n    </li>\n    <li class="list-group-item active">Sent</li>\n</ul>'],
+                    ["Badges", "Badges (.badge) are small count/label elements, colored with bg-* utilities and shaped with .rounded-pill. They sit inside buttons, headings, and list items to show counts or statuses.", '<button class="btn btn-primary">Messages <span class="badge bg-light text-dark">9</span></button>\n<span class="badge rounded-pill bg-success">New</span>'],
+                    ["Alerts", "Alerts (.alert + .alert-{color}) present feedback messages. Add .alert-dismissible with a close button for dismissable notices, and include a heading or link inside for richer messages.", '<div class="alert alert-warning alert-dismissible">\n    Please verify your email.\n    <button class="btn-close" data-bs-dismiss="alert"></button>\n</div>'],
+                ],
+                ex: "Build a notifications panel: a list group where each item shows a label and a count badge, one active item, and a dismissible success alert at the top confirming an action.",
+                tips: ["list-group + item-action for interactive lists", "Badges show counts/labels; rounded-pill for pills", "Alerts give feedback; alert-dismissible adds a close button"],
+            },
+            {
+                t: "Dropdowns and Button Groups", s: "bootstrap-dropdowns",
+                e: "Add menus and grouped controls powered by Bootstrap's JavaScript.",
+                sec: [
+                    ["Dropdowns", "A dropdown pairs a toggle button (.dropdown-toggle with data-bs-toggle='dropdown') with a .dropdown-menu of items. The JS bundle handles opening, closing, and positioning. Great for actions, filters, and account menus.", '<div class="dropdown">\n    <button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">Menu</button>\n    <ul class="dropdown-menu">\n        <li><a class="dropdown-item" href="#">Profile</a></li>\n        <li><hr class="dropdown-divider"></li>\n        <li><a class="dropdown-item" href="#">Sign out</a></li>\n    </ul>\n</div>'],
+                    ["Button groups and toolbars", "Combine buttons into a .btn-group for segmented controls, or several groups into a .btn-toolbar. Add a dropdown inside a button group to make a split button (an action plus a menu).", '<div class="btn-group">\n    <button class="btn btn-primary">Save</button>\n    <button class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>\n    <ul class="dropdown-menu"><li><a class="dropdown-item" href="#">Save as…</a></li></ul>\n</div>'],
+                    ["Directions and alignment", "Utilities control where a dropdown opens (dropup, dropend) and how the menu aligns (dropdown-menu-end). These handle edge cases where a menu would overflow the screen."],
+                ],
+                ex: "Build an account menu dropdown (Profile, Settings, divider, Sign out) and a split button where the main part performs an action and the caret opens related options. Verify the menu opens and closes via the JS bundle.",
+                tips: ["dropdown-toggle + dropdown-menu, powered by the JS bundle", "btn-group for segmented controls; split buttons add a menu", "dropup/dropend and menu-end control direction/alignment"],
+            },
+            {
+                t: "Responsive Breakpoints and Mobile-First Design", s: "bootstrap-breakpoints",
+                e: "Master Bootstrap's breakpoint system to design once and adapt everywhere.",
+                sec: [
+                    ["The breakpoints", "Bootstrap defines six breakpoints — xs (default), sm (≥576px), md (≥768px), lg (≥992px), xl (≥1200px), xxl (≥1400px). Almost every utility and grid class accepts a breakpoint infix that applies from that width up.", '<!-- infix appears after the property: -->\n<div class="d-none d-md-block">Shown from md up</div>\n<div class="text-center text-lg-start">Centered, left-aligned on lg+</div>'],
+                    ["Mobile-first thinking", "Classes without an infix apply to all sizes (starting mobile); infixed classes override from that breakpoint up. So you style the smallest screen first, then layer changes for larger ones — never the reverse. This is the mental model behind responsive Bootstrap."],
+                    ["Responsive everything", "Columns (col-md-6), spacing (px-lg-5), display (d-none d-md-flex), text alignment, and flex direction all take breakpoints. Combining them lets one HTML structure adapt from phone to widescreen without a single media query you write.", '<div class="d-flex flex-column flex-lg-row p-3 p-lg-5 gap-3">\n    <div class="w-100 w-lg-50">Adapts</div>\n    <div class="w-100 w-lg-50">Adapts</div>\n</div>'],
+                ],
+                ex: "Take a two-section page and make it fully responsive with breakpoints only: stack on mobile then side-by-side on lg, increase padding on larger screens, center text on mobile but left-align on desktop, and hide a decorative element below md.",
+                tips: ["Six breakpoints; the infix applies from that width up", "Mobile-first: no-infix = all sizes, infix = larger overrides", "Grid, spacing, display, text, and flex all take breakpoints"],
+            },
+            {
+                t: "Modals", s: "bootstrap-modals",
+                e: "Create dialog boxes for confirmations, forms, and details using Bootstrap's modal component.",
+                sec: [
+                    ["Modal structure", "A modal is a hidden .modal container with a .modal-dialog > .modal-content holding header, body, and footer. A trigger button opens it via data attributes; the JS bundle handles the overlay, focus, and Escape-to-close.", '<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModal">Open</button>\n<div class="modal fade" id="myModal" tabindex="-1">\n    <div class="modal-dialog">\n        <div class="modal-content">\n            <div class="modal-header"><h5 class="modal-title">Confirm</h5>\n                <button class="btn-close" data-bs-dismiss="modal"></button></div>\n            <div class="modal-body">Are you sure?</div>\n            <div class="modal-footer">\n                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>\n                <button class="btn btn-danger">Delete</button>\n            </div>\n        </div>\n    </div>\n</div>'],
+                    ["Options and sizes", "Modals support sizes (.modal-lg, .modal-sm), centering (.modal-dialog-centered), scrollable bodies, and static backdrops that don't close on outside click — configured with classes and data attributes.", '<div class="modal-dialog modal-lg modal-dialog-centered">…</div>'],
+                    ["Controlling modals with JavaScript", "Beyond data attributes, you can open/close modals in code via the Modal API — useful when a modal should appear after an async action (e.g. a save succeeds).", 'const modal = new bootstrap.Modal("#myModal");\nmodal.show();\n// later: modal.hide();'],
+                ],
+                ex: "Build a delete-confirmation modal triggered by a button, with Cancel and Delete actions and a static backdrop. Then add a second modal you open programmatically with the Modal API after a simulated save.",
+                tips: ["Modal = trigger + hidden modal/dialog/content structure", "data-bs-toggle/target open it; the JS bundle manages it", "Sizes, centering, static backdrop, and a JS API are available"],
+            },
+        ],
+        Advanced: [
+            {
+                t: "Carousels and Offcanvas", s: "bootstrap-carousel-offcanvas",
+                e: "Build image sliders and slide-in panels with two more JavaScript-powered components.",
+                sec: [
+                    ["The carousel", "A .carousel cycles through .carousel-item slides with optional controls, indicators, and captions. Data attributes configure auto-play interval and touch/keyboard support; the JS bundle drives the animation.", '<div id="hero" class="carousel slide" data-bs-ride="carousel">\n    <div class="carousel-inner">\n        <div class="carousel-item active"><img src="/1.jpg" class="d-block w-100"></div>\n        <div class="carousel-item"><img src="/2.jpg" class="d-block w-100"></div>\n    </div>\n    <button class="carousel-control-prev" data-bs-target="#hero" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>\n    <button class="carousel-control-next" data-bs-target="#hero" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>\n</div>'],
+                    ["Offcanvas", "Offcanvas panels slide in from an edge — perfect for mobile menus, filters, and carts. Like modals, a trigger opens a hidden .offcanvas via data attributes, and it can be placed on any side.", '<button class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#menu">Menu</button>\n<div class="offcanvas offcanvas-start" id="menu">\n    <div class="offcanvas-header"><h5>Menu</h5><button class="btn-close" data-bs-dismiss="offcanvas"></button></div>\n    <div class="offcanvas-body">Links here</div>\n</div>'],
+                    ["When to use which", "Carousels suit rotating hero content and testimonials (use sparingly — auto-rotating content has usability downsides). Offcanvas suits secondary navigation and panels that shouldn't take permanent screen space, especially on mobile."],
+                ],
+                ex: "Build a hero carousel with three slides, controls, indicators, and captions, plus an offcanvas mobile menu that slides in from the left with navigation links. Configure the carousel's interval and pause-on-hover.",
+                tips: ["Carousel cycles carousel-items with controls/indicators", "Offcanvas panels slide in from any edge for menus/filters", "Use carousels sparingly; offcanvas is great for mobile nav"],
+            },
+            {
+                t: "Tooltips, Popovers, and Toasts", s: "bootstrap-tooltips-toasts",
+                e: "Add contextual hints, rich popovers, and non-blocking notifications.",
+                sec: [
+                    ["Tooltips and popovers need initialization", "Unlike most components, tooltips and popovers are opt-in for performance — you must initialize them in JavaScript. Tooltips show a small hint on hover/focus; popovers show a richer box with a title and content.", 'const tips = document.querySelectorAll(\'[data-bs-toggle="tooltip"]\');\ntips.forEach(el => new bootstrap.Tooltip(el));\n\n// <button data-bs-toggle="tooltip" title="Helpful hint">Hover me</button>'],
+                    ["Toasts", "Toasts are lightweight, auto-dismissing notifications that stack in a corner — ideal for 'Saved!' confirmations. Build the markup, then show them via the Toast API, usually inside a fixed .toast-container.", 'const toast = new bootstrap.Toast(document.querySelector("#saved"));\ntoast.show();\n// <div id="saved" class="toast"><div class="toast-body">Saved!</div></div>'],
+                    ["Placement and accessibility", "All three support placement options (top, bottom, left, right) and should be used accessibly: tooltips supplement, never replace, visible labels, and important information shouldn't live only in a hover state that touch and keyboard users can't easily reach."],
+                ],
+                ex: "Add tooltips to a toolbar of icon buttons (initializing them in JS), a popover with a title and body on a help icon, and a toast that appears in the bottom-right corner when a 'Save' button is clicked.",
+                tips: ["Tooltips/popovers must be initialized in JavaScript", "Toasts are stacking, auto-dismissing notifications", "Don't hide essential info behind hover-only tooltips"],
+            },
+            {
+                t: "Accordion, Collapse, and Scrollspy", s: "bootstrap-accordion-collapse",
+                e: "Build expandable sections and scroll-linked navigation.",
+                sec: [
+                    ["Collapse", "The collapse plugin shows/hides content with a smooth transition, driven by a trigger with data-bs-toggle='collapse' and a target. It underlies the navbar toggle and accordions, and works standalone for 'show more' sections.", '<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#more">Show more</button>\n<div class="collapse" id="more"><div class="card card-body">Extra content</div></div>'],
+                    ["Accordion", "An .accordion groups collapsible items where opening one can close the others (via data-bs-parent). Perfect for FAQs and settings panels that would otherwise be a long scroll.", '<div class="accordion" id="faq">\n    <div class="accordion-item">\n        <h2 class="accordion-header"><button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#q1">Question 1</button></h2>\n        <div id="q1" class="accordion-collapse collapse show" data-bs-parent="#faq">\n            <div class="accordion-body">Answer 1</div>\n        </div>\n    </div>\n</div>'],
+                    ["Scrollspy", "Scrollspy automatically highlights nav links based on scroll position — the 'you are here' effect in long documentation pages. Enable it with data attributes on the scrollable container pointing at the nav.", '<body data-bs-spy="scroll" data-bs-target="#toc">\n    <nav id="toc">…links to #sections…</nav>\n</body>'],
+                ],
+                ex: "Build an FAQ accordion of five questions where opening one closes the rest, a standalone 'show more' collapse, and a documentation page with a sidebar nav that highlights the current section via scrollspy.",
+                tips: ["Collapse shows/hides with transitions; powers many components", "Accordion + data-bs-parent makes items mutually exclusive", "Scrollspy highlights nav links by scroll position"],
+            },
+            {
+                t: "Customizing with Sass and CSS Variables", s: "bootstrap-customizing-sass",
+                e: "Make Bootstrap your own by theming colors, spacing, and components at the source.",
+                sec: [
+                    ["Why customize at the source", "Overriding Bootstrap with your own CSS afterward is fragile and bloats the stylesheet. The right way is to customize Bootstrap's Sass variables before compiling, so your theme is baked in and unused parts can be dropped."],
+                    ["Overriding Sass variables", "Install Bootstrap via npm, set your variable values, then import Bootstrap's Sass. Change the primary color, border radius, font, spacing scale, and more — every component updates consistently.", '// custom.scss\n$primary: #f97316;\n$border-radius: 0.75rem;\n$font-family-base: "Poppins", sans-serif;\n@import "bootstrap/scss/bootstrap";'],
+                    ["CSS variables and importing only what you need", "Bootstrap 5 also exposes CSS custom properties (--bs-primary) you can override at runtime for theming (including dark mode via data-bs-theme). For smaller bundles, import only the Sass partials you use instead of the whole framework.", '<html data-bs-theme="dark">   <!-- built-in dark mode -->\n<div style="--bs-primary: #10b981;">scoped override</div>'],
+                ],
+                ex: "Set up Bootstrap via npm with a custom.scss that changes the primary color, base font, and border radius, then compile it. Add a dark-mode toggle using data-bs-theme and confirm components adapt.",
+                tips: ["Customize Sass variables before import — don't override after", "Change $primary, $border-radius, fonts, spacing at the source", "CSS variables (--bs-*) and data-bs-theme enable runtime theming"],
+            },
+            {
+                t: "The Utility API and Utility-First Workflow", s: "bootstrap-utility-api",
+                e: "Generate your own utilities and lean on Bootstrap's utilities for rapid, consistent UI.",
+                sec: [
+                    ["The utility-first mindset", "Much of modern Bootstrap work is composing utilities directly in markup — spacing, flex, colors, borders — reaching for components only for complex widgets. This keeps custom CSS minimal and designs consistent, echoing the utility-first approach popularized by other frameworks."],
+                    ["Generating custom utilities", "Bootstrap's utility API lets you add or modify utilities via a Sass map — define a new property, its class name, values, and responsive behavior, and Bootstrap generates the classes for you.", '// add a custom "cursor" utility\n$utilities: map-merge($utilities, (\n  "cursor": (property: cursor, class: cursor, values: pointer grab not-allowed)\n));\n// → .cursor-pointer, .cursor-grab, .cursor-not-allowed'],
+                    ["Balancing utilities and components", "Utilities excel for layout and one-off styling; components (cards, modals) excel for repeated complex patterns. When a utility combination repeats everywhere, extract it into a component class with Sass's @extend or a custom class — the same DRY judgment you apply to any code."],
+                ],
+                ex: "Rebuild a small card layout using only utilities (no .card component) to feel the utility-first flow. Then add one custom utility via the utility API (e.g. an opacity or cursor value) and use it.",
+                tips: ["Compose utilities in markup; reserve components for complex widgets", "The utility API generates custom classes from a Sass map", "Extract repeated utility combos into components (DRY)"],
+            },
+            {
+                t: "Accessibility with Bootstrap", s: "bootstrap-accessibility",
+                e: "Use Bootstrap's accessibility features correctly — it helps, but it doesn't do everything for you.",
+                sec: [
+                    ["What Bootstrap gives you", "Bootstrap components ship with sensible ARIA roles, focus management (modals trap focus), and keyboard support. The color system aims for contrast, and the .visually-hidden class provides screen-reader-only text. This is a strong foundation — but only a foundation."],
+                    ["What you must still do", "Bootstrap can't know your content's meaning. You must add alt text to images, label every form control, use headings in order, provide accessible names for icon-only buttons (aria-label), and check color contrast for your custom theme. Icon buttons and custom widgets are the usual gaps.", '<button class="btn btn-primary" aria-label="Close search"><i class="bi bi-x"></i></button>\n<span class="visually-hidden">Loading…</span>'],
+                    ["Testing", "Verify with a keyboard (can you reach and operate everything without a mouse?), a screen reader, and an automated tool like the axe DevTools extension. Bootstrap gives you a head start, but accessibility is a responsibility you own, not a checkbox the framework ticks."],
+                ],
+                ex: "Audit a Bootstrap page you built: add aria-labels to icon-only buttons, ensure every input has a label, confirm modal focus works, add visually-hidden text where needed, and run axe DevTools to fix the top issues.",
+                tips: ["Bootstrap provides ARIA, focus, and keyboard basics", "You still add alt text, labels, and accessible names for icons", "Test with keyboard, screen reader, and axe DevTools"],
+            },
+            {
+                t: "Bootstrap Icons and Integration", s: "bootstrap-icons-integration",
+                e: "Add a matching icon set and use Bootstrap inside modern build tools and frameworks.",
+                sec: [
+                    ["Bootstrap Icons", "Bootstrap Icons is a free, official SVG icon library that pairs naturally with the framework. Add it via CDN or npm and use icons as classes on <i> elements or as inline SVG; size and color them with Bootstrap utilities.", '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">\n<i class="bi bi-heart-fill text-danger fs-3"></i>\n<button class="btn btn-primary"><i class="bi bi-download"></i> Download</button>'],
+                    ["Using Bootstrap with build tools", "In real projects, install Bootstrap via npm and import its CSS/JS in your bundler (Vite, webpack). Import the Sass for customization, and import only the JS plugins you use to keep bundles small.", 'import "bootstrap/dist/css/bootstrap.min.css";\nimport { Modal, Toast } from "bootstrap";   // import only what you need'],
+                    ["Bootstrap in frameworks", "With React or Vue, you can use Bootstrap's CSS with framework-native component wrappers (react-bootstrap) that turn components into proper React components with props — avoiding manual data attributes and jQuery-style DOM handling, and fitting the component model cleanly."],
+                ],
+                ex: "Add Bootstrap Icons to a project and place icons in buttons and a list. Then set up Bootstrap in a Vite project via npm imports, importing only the Modal and Toast plugins, and confirm a modal works.",
+                tips: ["Bootstrap Icons is the official matching SVG set", "npm + bundler imports; import only the JS plugins you use", "react-bootstrap wraps components as native React components"],
+            },
+            {
+                t: "Building a Complete Responsive Site", s: "bootstrap-complete-project",
+                e: "Tie every concept together into a polished, responsive multi-section landing page.",
+                sec: [
+                    ["Structure and layout", "Start with a responsive navbar, then a hero (grid + display text + CTA buttons), feature cards (row-cols), a content section, and a footer — all inside containers with consistent spacing utilities. This structure covers most marketing and product sites."],
+                    ["Interactivity and polish", "Layer in components: a carousel or offcanvas menu, a contact modal, tooltips on icons, and a toast on form submit. Use the grid and flex utilities to keep everything aligned across breakpoints, and test at every screen size."],
+                    ["Performance and production", "For production, install via npm and compile only the Sass and JS you use, purge unused CSS, minify, and serve compressed. Validate accessibility and Core Web Vitals. A Bootstrap site can be fast and lean when you ship only what you use — not the whole CDN bundle."],
+                ],
+                ex: "Build a complete one-page responsive site: navbar, hero, a three-card feature row, an FAQ accordion, a contact form in a modal, and a footer — fully responsive and accessible. Then set it up with npm + Sass importing only what you use.",
+                tips: ["Compose navbar → hero → cards → content → footer in containers", "Add carousel/modal/tooltip/toast for interactivity and polish", "Ship only the Sass/JS you use; purge, minify, and test a11y"],
+            },
+        ],
+    },
+}
