@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import nodemailer from "nodemailer"
+import { getSmtpConfig } from "@/lib/serverConfig"
 
 export async function POST(req: Request) {
     try {
@@ -13,14 +14,20 @@ export async function POST(req: Request) {
             )
         }
 
+        // SMTP config comes from admin Settings (env fallback).
+        const smtp = await getSmtpConfig()
+        if (!smtp.host || !smtp.user) {
+            return NextResponse.json({ error: "Email is not configured. Please try again later." }, { status: 503 })
+        }
+
         // Create transporter
         const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT || "587"),
-            secure: process.env.SMTP_PORT === "465", // true for 465, false for other ports
+            host: smtp.host,
+            port: smtp.port,
+            secure: smtp.port === 465, // true for 465, false for other ports
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASSWORD,
+                user: smtp.user,
+                pass: smtp.password,
             },
         })
 
@@ -71,9 +78,10 @@ export async function POST(req: Request) {
         `
 
         // Send email
+        const fromAddress = smtp.from || smtp.user
         await transporter.sendMail({
-            from: `"${fullName}" <${process.env.SMTP_FROM}>`,
-            to: process.env.SMTP_FROM,
+            from: `"${fullName}" <${fromAddress}>`,
+            to: fromAddress,
             subject: `New Contact Form Submission: ${fullName}`,
             text: `Name: ${fullName}\nEmail: ${email}\n\nMessage:\n${message}`,
             html: html,

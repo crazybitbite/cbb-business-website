@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { getSocialConfig } from "@/lib/serverConfig"
 
 /**
  * Refresh an OAuth access token for a given provider
@@ -128,10 +129,13 @@ export async function verifyAndSaveSubscription(userId: number, platform: string
         let accessToken = account.access_token
         let isVerified = false
 
+        // Target account IDs come from admin Settings (env fallback).
+        const social = await getSocialConfig()
+
         // 2. Perform API Checks using User's Token
         switch (platform) {
             case 'youtube':
-                const targetChannelId = process.env.YOUTUBE_CHANNEL_ID
+                const targetChannelId = social.youtubeChannelId
                 if (!targetChannelId) {
                     console.error("Server configuration error: Missing Target Channel ID")
                     return false
@@ -173,7 +177,7 @@ export async function verifyAndSaveSubscription(userId: number, platform: string
                 break;
 
             case 'twitter':
-                const targetTwitterId = process.env.TWITTER_TARGET_ACCOUNT_ID
+                const targetTwitterId = social.twitterTargetAccountId
                 if (!targetTwitterId) {
                     console.log("Twitter: Missing TWITTER_TARGET_ACCOUNT_ID")
                     return false
@@ -218,7 +222,7 @@ export async function verifyAndSaveSubscription(userId: number, platform: string
                 break;
 
             case 'linkedin':
-                const linkedinCompanyId = process.env.LINKEDIN_COMPANY_ID
+                const linkedinCompanyId = social.linkedinCompanyId
                 if (!linkedinCompanyId) {
                     console.log("LinkedIn: Missing LINKEDIN_COMPANY_ID")
                     return false
@@ -258,7 +262,7 @@ export async function verifyAndSaveSubscription(userId: number, platform: string
                 break;
 
             case 'facebook':
-                const facebookPageId = process.env.FACEBOOK_PAGE_ID
+                const facebookPageId = social.facebookPageId
                 if (!facebookPageId) {
                     console.log("Facebook: Missing FACEBOOK_PAGE_ID")
                     return false
@@ -303,7 +307,7 @@ export async function verifyAndSaveSubscription(userId: number, platform: string
                 break;
 
             case 'instagram':
-                const instagramAccountId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID
+                const instagramAccountId = social.instagramBusinessAccountId
                 if (!instagramAccountId) {
                     console.log("Instagram: Missing INSTAGRAM_BUSINESS_ACCOUNT_ID")
                     return false

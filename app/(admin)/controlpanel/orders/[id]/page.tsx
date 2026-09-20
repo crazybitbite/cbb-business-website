@@ -59,7 +59,7 @@ export default async function AdminOrderDetailPage({ params }: { params: { id: s
                         {order.items.map((item) => (
                             <div key={item.id} className="p-5 flex items-center justify-between">
                                 <div>
-                                    <p className="font-medium text-white">{item.page?.name || "Unknown Item"}</p>
+                                    <p className="font-medium text-white">{item.page?.name || item.title || "Unknown Item"}</p>
                                     {item.page?.slug && (
                                         <Link href={`/${item.page.slug}`} target="_blank" className="text-xs text-orange-400 hover:text-orange-300">
                                             /{item.page.slug}

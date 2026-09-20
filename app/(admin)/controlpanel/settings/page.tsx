@@ -5,6 +5,8 @@ import { Save, Loader2, Upload, X } from "lucide-react"
 import { CURRENCIES } from "@/lib/currency"
 import { SideContentEditor } from "@/components/admin/SideContentEditor"
 import { EMPTY_SIDE_CONTENT, normalizeSideContent, type SideContent } from "@/lib/sideContent"
+import { ConsultationEditor } from "@/components/admin/ConsultationEditor"
+import type { ConsultationHours, PauseWindow } from "@/lib/booking"
 
 const EMPTY_SETTINGS = {
     siteName: "",
@@ -19,6 +21,7 @@ const EMPTY_SETTINGS = {
     logo: "",
     stripePublishableKey: "",
     stripeSecretKey: "",
+    stripeWebhookSecret: "",
     defaultPaymentMethod: "stripe",
     paymentQrCode: "",
     defaultSeoTitle: "",
@@ -28,6 +31,25 @@ const EMPTY_SETTINGS = {
     whatsapp: "",
     telegramQr: "",
     whatsappQr: "",
+    // Email (SMTP)
+    smtpHost: "",
+    smtpPort: "",
+    smtpUser: "",
+    smtpPassword: "",
+    smtpFrom: "",
+    // Consultation host / Google Calendar
+    meetingEmail: "",
+    meetingTimezone: "",
+    googleCalendarClientId: "",
+    googleCalendarClientSecret: "",
+    googleCalendarRefreshToken: "",
+    googleCalendarId: "",
+    // Social subscription verification (target account IDs)
+    youtubeChannelId: "",
+    twitterTargetAccountId: "",
+    linkedinCompanyId: "",
+    facebookPageId: "",
+    instagramBusinessAccountId: "",
 }
 
 type SettingsForm = typeof EMPTY_SETTINGS
@@ -37,6 +59,8 @@ export default function AdminSettings() {
     const [isFetching, setIsFetching] = useState(true)
     const [settings, setSettings] = useState<SettingsForm>(EMPTY_SETTINGS)
     const [sideContent, setSideContent] = useState<SideContent>(EMPTY_SIDE_CONTENT)
+    const [consultationHours, setConsultationHours] = useState<ConsultationHours>({})
+    const [consultationPauses, setConsultationPauses] = useState<PauseWindow[]>([])
 
     useEffect(() => {
         fetchSettings()
@@ -57,6 +81,12 @@ export default function AdminSettings() {
                     return next
                 })
                 setSideContent(normalizeSideContent(data.sideContent))
+                if (data.consultationHours && typeof data.consultationHours === "object") {
+                    setConsultationHours(data.consultationHours)
+                }
+                if (Array.isArray(data.consultationPauses)) {
+                    setConsultationPauses(data.consultationPauses)
+                }
             }
         } catch (error) {
             console.error("Failed to fetch settings:", error)
@@ -84,7 +114,7 @@ export default function AdminSettings() {
             const res = await fetch("/api/settings", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...settings, sideContent }),
+                body: JSON.stringify({ ...settings, sideContent, consultationHours, consultationPauses }),
             })
 
             if (!res.ok) throw new Error("Failed to save settings")
@@ -284,6 +314,51 @@ export default function AdminSettings() {
                                 className={inputClass}
                             />
                         </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-300">Webhook Signing Secret</label>
+                            <input
+                                type="password"
+                                placeholder="whsec_..."
+                                value={settings.stripeWebhookSecret}
+                                onChange={(e) => setSettings({ ...settings, stripeWebhookSecret: e.target.value })}
+                                className={inputClass}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Email (SMTP) */}
+                <div className="rounded-xl border border-white/10 bg-black/40 p-6 space-y-6">
+                    <h2 className="text-xl font-semibold text-white">Email (SMTP)</h2>
+                    <p className="text-xs text-gray-500">
+                        Used to send the contact-form messages and booking confirmation emails.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">SMTP Host</label>
+                            <input type="text" placeholder="smtp.gmail.com" value={settings.smtpHost}
+                                onChange={(e) => setSettings({ ...settings, smtpHost: e.target.value })} className={inputClass} />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">SMTP Port</label>
+                            <input type="text" placeholder="587" value={settings.smtpPort}
+                                onChange={(e) => setSettings({ ...settings, smtpPort: e.target.value })} className={inputClass} />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">SMTP Username</label>
+                            <input type="text" autoComplete="off" value={settings.smtpUser}
+                                onChange={(e) => setSettings({ ...settings, smtpUser: e.target.value })} className={inputClass} />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">SMTP Password</label>
+                            <input type="password" autoComplete="new-password" value={settings.smtpPassword}
+                                onChange={(e) => setSettings({ ...settings, smtpPassword: e.target.value })} className={inputClass} />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-300">From Address</label>
+                            <input type="email" placeholder="no-reply@yourdomain.com" value={settings.smtpFrom}
+                                onChange={(e) => setSettings({ ...settings, smtpFrom: e.target.value })} className={inputClass} />
+                        </div>
                     </div>
                 </div>
 
@@ -295,6 +370,94 @@ export default function AdminSettings() {
                         side content take precedence: page → category → these site-wide settings.
                     </p>
                     <SideContentEditor value={sideContent} onChange={setSideContent} />
+                </div>
+
+                {/* Consultation Booking */}
+                <div className="rounded-xl border border-white/10 bg-black/40 p-6 space-y-6">
+                    <h2 className="text-xl font-semibold text-white">Consultation Booking</h2>
+                    <ConsultationEditor
+                        hours={consultationHours}
+                        pauses={consultationPauses}
+                        onHoursChange={setConsultationHours}
+                        onPausesChange={setConsultationPauses}
+                    />
+
+                    <div className="pt-4 border-t border-white/10 space-y-4">
+                        <h3 className="text-white font-medium">Meeting host &amp; Google Calendar</h3>
+                        <p className="text-xs text-gray-500">
+                            Paid bookings create a real Google Calendar event (with a Meet link) on the host account.
+                            Generate the refresh token once via <code>scripts/google-calendar-token.mjs</code>. The OAuth
+                            client falls back to the site&apos;s Google sign-in credentials if left blank.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">Meeting Host Email</label>
+                                <input type="email" placeholder="host@yourdomain.com" value={settings.meetingEmail}
+                                    onChange={(e) => setSettings({ ...settings, meetingEmail: e.target.value })} className={inputClass} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">Timezone (IANA)</label>
+                                <input type="text" placeholder="Asia/Kolkata" value={settings.meetingTimezone}
+                                    onChange={(e) => setSettings({ ...settings, meetingTimezone: e.target.value })} className={inputClass} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">Calendar ID</label>
+                                <input type="text" placeholder="primary" value={settings.googleCalendarId}
+                                    onChange={(e) => setSettings({ ...settings, googleCalendarId: e.target.value })} className={inputClass} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">OAuth Client ID</label>
+                                <input type="text" autoComplete="off" placeholder="(defaults to Google sign-in)" value={settings.googleCalendarClientId}
+                                    onChange={(e) => setSettings({ ...settings, googleCalendarClientId: e.target.value })} className={inputClass} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">OAuth Client Secret</label>
+                                <input type="password" autoComplete="new-password" placeholder="(defaults to Google sign-in)" value={settings.googleCalendarClientSecret}
+                                    onChange={(e) => setSettings({ ...settings, googleCalendarClientSecret: e.target.value })} className={inputClass} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">OAuth Refresh Token</label>
+                                <input type="password" autoComplete="new-password" value={settings.googleCalendarRefreshToken}
+                                    onChange={(e) => setSettings({ ...settings, googleCalendarRefreshToken: e.target.value })} className={inputClass} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Social Subscription Verification */}
+                <div className="rounded-xl border border-white/10 bg-black/40 p-6 space-y-6">
+                    <h2 className="text-xl font-semibold text-white">Social Subscription Verification</h2>
+                    <p className="text-xs text-gray-500">
+                        Target account IDs used to verify that a user follows/subscribes on each platform. The OAuth app
+                        credentials for sign-in stay in environment variables.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">YouTube Channel ID</label>
+                            <input type="text" value={settings.youtubeChannelId}
+                                onChange={(e) => setSettings({ ...settings, youtubeChannelId: e.target.value })} className={inputClass} />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">Twitter Target Account ID</label>
+                            <input type="text" value={settings.twitterTargetAccountId}
+                                onChange={(e) => setSettings({ ...settings, twitterTargetAccountId: e.target.value })} className={inputClass} />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">LinkedIn Company ID</label>
+                            <input type="text" value={settings.linkedinCompanyId}
+                                onChange={(e) => setSettings({ ...settings, linkedinCompanyId: e.target.value })} className={inputClass} />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">Facebook Page ID</label>
+                            <input type="text" value={settings.facebookPageId}
+                                onChange={(e) => setSettings({ ...settings, facebookPageId: e.target.value })} className={inputClass} />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-300">Instagram Business Account ID</label>
+                            <input type="text" value={settings.instagramBusinessAccountId}
+                                onChange={(e) => setSettings({ ...settings, instagramBusinessAccountId: e.target.value })} className={inputClass} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* SEO Defaults */}
