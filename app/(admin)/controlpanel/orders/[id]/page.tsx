@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { epochToDate } from "@/lib/utils"
 import { formatPrice } from "@/lib/currency"
+import { paymentMethodLabel } from "@/lib/paymentMethods"
 import { VerifyOrderActions } from "@/components/admin/VerifyOrderActions"
 import { ArrowLeft, Package, CreditCard, User as UserIcon } from "lucide-react"
 import Link from "next/link"
@@ -93,11 +94,15 @@ export default async function AdminOrderDetailPage({ params }: { params: { id: s
                             <CreditCard className="h-5 w-5 mr-2 text-orange-500" /> Payment
                         </h3>
                         <p className="text-gray-400 text-sm">
-                            Method: <span className="text-white">{order.paymentMethod === "qr" ? "QR Code" : "Stripe (Card)"}</span>
+                            Method: <span className="text-white">{paymentMethodLabel(order.paymentMethod)}</span>
                         </p>
                         {order.paymentMethod === "qr" ? (
                             <p className="text-gray-400 text-sm">
                                 Transaction ID (UTR): <span className="text-white font-mono">{order.transactionId || "Not submitted yet"}</span>
+                            </p>
+                        ) : order.paymentMethod === "razorpay" ? (
+                            <p className="text-gray-400 text-sm break-all">
+                                Razorpay Payment: <span className="text-white font-mono text-xs">{order.transactionId || order.stripeSessionId || "N/A"}</span>
                             </p>
                         ) : (
                             <p className="text-gray-400 text-sm break-all">

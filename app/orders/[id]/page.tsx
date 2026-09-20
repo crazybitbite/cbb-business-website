@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { epochToDate } from "@/lib/utils"
 import { prisma } from "@/lib/prisma"
 import { formatPrice } from "@/lib/currency"
+import { paymentMethodLabel } from "@/lib/paymentMethods"
 import { OrderSuccessBanner } from "@/components/OrderSuccessBanner"
 import { ArrowLeft, Package, MapPin, CreditCard } from "lucide-react"
 import Link from "next/link"
@@ -137,11 +138,13 @@ export default async function OrderDetailPage({
                             <CreditCard className="h-5 w-5 mr-2 text-orange-500" />
                             Payment Info
                         </h3>
-                        <p className="text-gray-400">Payment via {order.paymentMethod === "qr" ? "QR Code" : "Stripe"}</p>
+                        <p className="text-gray-400">Payment via {paymentMethodLabel(order.paymentMethod)}</p>
                         <p className="text-sm text-gray-500 mt-2">
                             {order.paymentMethod === "qr"
                                 ? `Transaction ID: ${order.transactionId || "Not submitted yet"}`
-                                : `ID: ${order.stripeSessionId || "N/A"}`}
+                                : order.paymentMethod === "razorpay"
+                                    ? `Payment ID: ${order.transactionId || order.stripeSessionId || "N/A"}`
+                                    : `ID: ${order.stripeSessionId || "N/A"}`}
                         </p>
                     </div>
                 </div>

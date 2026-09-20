@@ -72,3 +72,83 @@ export async function sendBookingEmail(input: BookingEmailInput): Promise<void> 
         html,
     })
 }
+
+interface BookingQrNotificationInput {
+    firstName: string
+    lastName: string
+    email: string
+    phone: string
+    startsAt: Date
+    timeZone: string
+    durationMin: number
+    price: number
+    currency: string
+    transactionId: string
+    bookingId: number
+    orderId: number
+}
+
+/**
+ * Notifies the admin (the SMTP From address) that a QR consultation booking is
+ * awaiting payment verification, with the submitted transaction id. Best-effort.
+ */
+export async function sendBookingQrNotification(input: BookingQrNotificationInput): Promise<void> {
+    const smtp = await getSmtpConfig()
+    if (!smtp.host || !smtp.user) {
+        console.warn("SMTP not configured — skipping booking QR notification email")
+        return
+    }
+    const to = smtp.from || smtp.user
+
+    const when = new Intl.DateTimeFormat("en-GB", {
+        timeZone: input.timeZone,
+        dateStyle: "full",
+        timeStyle: "short",
+    }).format(input.startsAt)
+
+    const row = (label: string, value: string) =>
+        `<div class="field"><span class="label">${label}</span><div class="value">${value}</div></div>`
+
+    const html = `<!DOCTYPE html><html><head><style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; line-height: 1.6; color: #2f3342; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background:#fff; }
+        .header { background:#2f3342; color:#fff; padding:20px; text-align:center; border-radius:12px 12px 0 0; }
+        .header h1 { margin:0; font-size:20px; }
+        .content { padding:24px; }
+        .field { margin-bottom:14px; }
+        .label { font-weight:bold; color:#864797; display:block; margin-bottom:3px; text-transform:uppercase; font-size:11px; letter-spacing:1px; }
+        .value { background:#f7f5fa; padding:10px; border-radius:8px; border:1px solid #eee; }
+        .utr { font-family: monospace; font-size:18px; }
+        .footer { text-align:center; font-size:12px; color:#6b7280; padding:14px; }
+    </style></head><body><div class="container">
+        <div class="header"><h1>QR consultation booking — verify payment</h1></div>
+        <div class="content">
+            <p>A consultation was booked via QR payment and is awaiting your verification.</p>
+            ${row("Transaction ID (UTR)", `<span class="utr">${input.transactionId}</span>`)}
+            ${row("Amount", `${input.currency} ${input.price}`)}
+            ${row("When", `${when} (${input.timeZone})`)}
+            ${row("Duration", `${input.durationMin} minutes`)}
+            ${row("Client", `${input.firstName} ${input.lastName}`)}
+            ${row("Email", input.email)}
+            ${row("Phone", input.phone)}
+            ${row("Reference", `Booking #${input.bookingId} · Order #${input.orderId}`)}
+            <p>Verify the UTR against your bank records, then approve Order #${input.orderId} in the control panel to
+            confirm the booking and send the calendar invite.</p>
+        </div>
+        <div class="footer">CrazyBitBite · Booking verification</div>
+    </div></body></html>`
+
+    const transporter = nodemailer.createTransport({
+        host: smtp.host,
+        port: smtp.port,
+        secure: smtp.port === 465,
+        auth: { user: smtp.user, pass: smtp.password },
+    })
+
+    await transporter.sendMail({
+        from: smtp.from || smtp.user,
+        to,
+        subject: `QR booking to verify — UTR ${input.transactionId} (Order #${input.orderId})`,
+        html,
+    })
+}
