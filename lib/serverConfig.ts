@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { normalizeMethods, type PaymentMethod } from "@/lib/paymentMethods"
 
 /**
  * Server-side configuration resolved from the admin Settings table, with an
@@ -100,6 +101,34 @@ export async function getCalendarConfig(): Promise<CalendarConfig> {
             pick("googleCalendarClientSecret", "GOOGLE_CALENDAR_CLIENT_SECRET") || (process.env.AUTH_GOOGLE_SECRET || "").trim(),
         refreshToken: pick("googleCalendarRefreshToken", "GOOGLE_CALENDAR_REFRESH_TOKEN"),
         calendarId: pick("googleCalendarId", "GOOGLE_CALENDAR_ID", "primary"),
+    }
+}
+
+/**
+ * Payment methods enabled for consultation bookings, from Settings
+ * (consultationPaymentMethods). Defaults to Stripe if unset.
+ */
+export async function getConsultationPaymentMethods(): Promise<PaymentMethod[]> {
+    const rows = await prisma.settings.findMany({ where: { key: { in: ["consultationPaymentMethods"] } } })
+    const raw = rows[0]?.value
+    return normalizeMethods(raw) ?? (["stripe"] as PaymentMethod[])
+}
+
+export interface RazorpayConfig {
+    keyId: string
+    keySecret: string
+}
+
+export async function getRazorpayConfig(): Promise<RazorpayConfig> {
+    const map = await loadMap()
+    const pick = (key: string, envVar: string) => {
+        const v = map[key]
+        if (typeof v === "string" && v.trim()) return v.trim()
+        return (process.env[envVar] || "").trim()
+    }
+    return {
+        keyId: pick("razorpayKeyId", "RAZORPAY_KEY_ID"),
+        keySecret: pick("razorpayKeySecret", "RAZORPAY_KEY_SECRET"),
     }
 }
 

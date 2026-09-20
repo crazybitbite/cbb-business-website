@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { finalizeBooking } from "@/lib/bookingFinalize"
 
 /**
  * Admin-only: approve or reject a QR payment awaiting verification.
@@ -41,6 +42,17 @@ export async function POST(
             await prisma.orderNote.create({
                 data: { orderId, content: verificationNote },
             })
+        }
+
+        // If this order is a consultation booking, sync the booking: approving
+        // finalizes it (calendar invite + confirmation email); rejecting cancels it.
+        const booking = await prisma.booking.findUnique({ where: { orderId } })
+        if (booking) {
+            if (action === "approve") {
+                await finalizeBooking(booking.id, orderId, order.transactionId || undefined)
+            } else {
+                await prisma.booking.update({ where: { id: booking.id }, data: { status: "REJECTED" } })
+            }
         }
 
         return NextResponse.json({ ok: true, status: updated.status })

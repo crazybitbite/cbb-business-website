@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { X, Loader2, CalendarClock, Check, ArrowRight } from "lucide-react"
+import { X, Loader2, CalendarClock, Check, ArrowRight, CreditCard, QrCode } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { BOOKING_DURATIONS, BOOKING_PRICES, BOOKING_CURRENCY } from "@/lib/booking"
+import { openRazorpay } from "@/lib/razorpayClient"
 
 interface Slot {
     time: string
@@ -52,6 +53,16 @@ export function BookConsultationModal() {
     const [loadingSlots, setLoadingSlots] = useState(false)
     const [refreshKey, setRefreshKey] = useState(0)
 
+    // Payment: which methods are enabled + the QR image + chosen method.
+    const [methods, setMethods] = useState<string[]>(["stripe"])
+    const [qrCode, setQrCode] = useState<string | null>(null)
+    const [payMethod, setPayMethod] = useState<"online" | "qr">("online")
+    const [transactionId, setTransactionId] = useState("")
+    const [verifyingDone, setVerifyingDone] = useState(false)
+
+    const hasOnline = methods.some((m) => m === "stripe" || m === "razorpay")
+    const hasQr = methods.includes("qr")
+
     const loggedIn = Boolean(session?.user)
 
     // Prefill from the session when signed in.
@@ -95,6 +106,23 @@ export function BookConsultationModal() {
         if (params.get("booking") === "true") setOpen(true)
     }, [])
 
+    // Load enabled payment methods (and QR image) when the modal opens.
+    useEffect(() => {
+        if (!open) return
+        setVerifyingDone(false)
+        fetch("/api/booking/config")
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data) => {
+                if (!data) return
+                const m: string[] = data.methods?.length ? data.methods : ["stripe"]
+                setMethods(m)
+                setQrCode(data.qrCode || null)
+                const online = m.some((x) => x === "stripe" || x === "razorpay")
+                setPayMethod(online ? "online" : "qr")
+            })
+            .catch(() => { })
+    }, [open])
+
     // Load available slots whenever the date or duration changes while open.
     useEffect(() => {
         if (!open || !date || !durationMin) {
@@ -124,10 +152,40 @@ export function BookConsultationModal() {
 
     const canSubmit = useMemo(() => {
         const named = loggedIn ? true : firstName.trim() && lastName.trim() && email.trim()
-        return Boolean(named && phone.trim() && date && durationMin && time && !submitting)
-    }, [loggedIn, firstName, lastName, email, phone, date, durationMin, time, submitting])
+        const base = Boolean(named && phone.trim() && date && durationMin && time && !submitting)
+        if (payMethod === "qr") return base && transactionId.trim().length === 12
+        return base
+    }, [loggedIn, firstName, lastName, email, phone, date, durationMin, time, submitting, payMethod, transactionId])
+
+    const handleQrSubmit = useCallback(async () => {
+        setError(null)
+        setSubmitting(true)
+        try {
+            const res = await fetch("/api/booking/qr", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ firstName, lastName, email, phone, date, time, durationMin, transactionId }),
+            })
+            const data = await res.json()
+            if (!res.ok || !data.ok) {
+                setError(data.error || "Could not submit your booking. Please try again.")
+                setSubmitting(false)
+                if (res.status === 409) {
+                    setTime("")
+                    setRefreshKey((k) => k + 1)
+                }
+                return
+            }
+            setVerifyingDone(true)
+            setSubmitting(false)
+        } catch {
+            setError("Something went wrong. Please try again.")
+            setSubmitting(false)
+        }
+    }, [firstName, lastName, email, phone, date, time, durationMin, transactionId])
 
     const handleSubmit = useCallback(async () => {
+        if (payMethod === "qr") return handleQrSubmit()
         setError(null)
         setSubmitting(true)
         try {
@@ -137,7 +195,7 @@ export function BookConsultationModal() {
                 body: JSON.stringify({ firstName, lastName, email, phone, date, time, durationMin }),
             })
             const data = await res.json()
-            if (!res.ok || !data.url) {
+            if (!res.ok || (!data.url && !data.razorpay)) {
                 setError(data.error || "Could not start booking. Please try again.")
                 setSubmitting(false)
                 // Slot was taken meanwhile — refresh the grid so it shows as booked.
@@ -147,12 +205,45 @@ export function BookConsultationModal() {
                 }
                 return
             }
-            window.location.href = data.url // → Stripe Checkout
+
+            if (data.url) {
+                window.location.href = data.url // → Stripe hosted checkout
+                return
+            }
+
+            // → Razorpay widget
+            const rp = data.razorpay
+            try {
+                const result = await openRazorpay({
+                    keyId: rp.keyId,
+                    amount: rp.amount,
+                    currency: rp.currency,
+                    orderId: rp.orderId,
+                    name: rp.name,
+                    description: rp.description,
+                    prefill: rp.prefill,
+                })
+                const verify = await fetch("/api/booking/razorpay/verify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...result, bookingId: rp.bookingId, localOrderId: rp.localOrderId }),
+                })
+                const vData = await verify.json()
+                if (verify.ok && vData.ok) {
+                    window.location.href = `/booking/${vData.bookingId}?success=1`
+                } else {
+                    setError(vData.error || "Payment could not be verified. Please contact support.")
+                    setSubmitting(false)
+                }
+            } catch (e: any) {
+                setError(e?.message === "Payment cancelled." ? null : e?.message || "Payment failed.")
+                setSubmitting(false)
+            }
         } catch {
             setError("Something went wrong. Please try again.")
             setSubmitting(false)
         }
-    }, [firstName, lastName, email, phone, date, time, durationMin])
+    }, [payMethod, handleQrSubmit, firstName, lastName, email, phone, date, time, durationMin])
 
     if (!open) return null
 
@@ -187,7 +278,28 @@ export function BookConsultationModal() {
                     </div>
                 </div>
 
-                <div className="p-7 space-y-6">
+                {verifyingDone && (
+                    <div className="p-8 text-center space-y-4">
+                        <div className="mx-auto h-14 w-14 rounded-full bg-green-500/15 flex items-center justify-center">
+                            <Check className="h-7 w-7 text-green-400" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white">Booking received</h3>
+                        <p className="text-sm text-gray-300">
+                            Thanks! We&apos;ve recorded your booking and transaction id. Your slot is held while we
+                            verify the payment — you&apos;ll get a confirmation email with the meeting link once it&apos;s
+                            approved.
+                        </p>
+                        <button
+                            onClick={() => setOpen(false)}
+                            className="mt-2 rounded-full px-6 py-2.5 font-semibold text-white"
+                            style={{ background: `linear-gradient(135deg, ${PURPLE}, #6d3a7d)` }}
+                        >
+                            Done
+                        </button>
+                    </div>
+                )}
+
+                <div className={`p-7 space-y-6 ${verifyingDone ? "hidden" : ""}`}>
                     {/* Duration selector */}
                     <div>
                         <label className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
@@ -319,6 +431,72 @@ export function BookConsultationModal() {
                     </div>
                     )}
 
+                    {/* Payment method chooser (only when both online + QR are enabled) */}
+                    {hasOnline && hasQr && (
+                        <div>
+                            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+                                Pay with
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => { setPayMethod("online"); setError(null) }}
+                                    className="flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all"
+                                    style={{
+                                        borderColor: payMethod === "online" ? PURPLE : "rgba(255,255,255,0.12)",
+                                        background: payMethod === "online" ? "rgba(134,71,151,0.25)" : "rgba(255,255,255,0.04)",
+                                        color: "#fff",
+                                    }}
+                                >
+                                    <CreditCard className="h-4 w-4" /> Card
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setPayMethod("qr"); setError(null) }}
+                                    className="flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all"
+                                    style={{
+                                        borderColor: payMethod === "qr" ? PURPLE : "rgba(255,255,255,0.12)",
+                                        background: payMethod === "qr" ? "rgba(134,71,151,0.25)" : "rgba(255,255,255,0.04)",
+                                        color: "#fff",
+                                    }}
+                                >
+                                    <QrCode className="h-4 w-4" /> QR Code
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* QR: scan + enter transaction id */}
+                    {payMethod === "qr" && hasQr && (
+                        <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <p className="text-sm text-gray-300">
+                                Scan and pay{price ? <span className="font-bold" style={{ color: PARROT }}> ₹{price}</span> : ""},
+                                then enter the <strong className="text-white">12-digit transaction id (UTR)</strong> from your
+                                payment app. Your slot is held while we verify the payment.
+                            </p>
+                            {qrCode && (
+                                <div className="flex justify-center">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={qrCode} alt="Payment QR code" className="w-48 h-48 object-contain rounded-xl bg-white p-2" />
+                                </div>
+                            )}
+                            <div>
+                                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
+                                    Transaction ID
+                                </label>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength={12}
+                                    value={transactionId}
+                                    onChange={(e) => setTransactionId(e.target.value.replace(/\D/g, ""))}
+                                    placeholder="12-digit UTR, e.g. 415023987654"
+                                    className="w-full rounded-xl border border-white/12 bg-white/5 px-3.5 py-2.5 text-white placeholder-gray-500 outline-none focus:border-[#864797] focus:ring-1 focus:ring-[#864797] transition-colors"
+                                />
+                            </div>
+                        </div>
+                    )}
+
                     {/* No-cancellation / no-refund notice */}
                     <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5">
                         <p className="text-xs text-red-300 leading-relaxed">
@@ -345,8 +523,10 @@ export function BookConsultationModal() {
                     >
                         {submitting ? (
                             <>
-                                <Loader2 className="h-5 w-5 animate-spin" /> Redirecting to payment…
+                                <Loader2 className="h-5 w-5 animate-spin" /> {payMethod === "qr" ? "Submitting…" : "Redirecting to payment…"}
                             </>
+                        ) : payMethod === "qr" ? (
+                            <>I have paid — Submit <ArrowRight className="h-5 w-5" /></>
                         ) : (
                             <>
                                 Confirm &amp; Pay{price ? ` ₹${price}` : ""} <ArrowRight className="h-5 w-5" />
@@ -354,7 +534,9 @@ export function BookConsultationModal() {
                         )}
                     </button>
                     <p className="text-center text-xs text-gray-500">
-                        Secured by Stripe · You&apos;ll receive a Google Calendar invite after payment.
+                        {payMethod === "qr"
+                            ? "Your booking is confirmed after we verify the payment; the meeting invite follows by email."
+                            : "Secured payment · You'll receive a Google Calendar invite after payment."}
                     </p>
                 </div>
             </div>

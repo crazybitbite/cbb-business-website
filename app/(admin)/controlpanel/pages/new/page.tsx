@@ -256,9 +256,11 @@ export default function NewPage() {
                             className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-orange-500 focus:outline-none [&>option]:bg-gray-900"
                         >
                             <option value="">Use default from Settings</option>
-                            <option value="stripe">Stripe (Card)</option>
+                            <option value="stripe">Stripe</option>
+                            <option value="razorpay">Razorpay</option>
                             <option value="qr">QR Code</option>
-                            <option value="both">Both (QR + Stripe)</option>
+                            <option value="stripe,qr">Stripe + QR</option>
+                            <option value="razorpay,qr">Razorpay + QR</option>
                         </select>
                     </div>
                 )}

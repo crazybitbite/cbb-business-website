@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Eye, X, Loader2, Package, CreditCard, User as UserIcon, StickyNote, Plus, Pencil, Trash2 } from "lucide-react"
 import { formatPrice } from "@/lib/currency"
+import { paymentMethodLabel } from "@/lib/paymentMethods"
 import { VerifyOrderActions } from "@/components/admin/VerifyOrderActions"
 
 interface OrderNote {
@@ -182,11 +183,15 @@ export function OrderDetailModal({ orderId }: { orderId: number }) {
                                         <CreditCard className="h-4 w-4 mr-2 text-orange-500" /> Payment
                                     </h4>
                                     <p className="text-sm text-gray-400">
-                                        Method: <span className="text-white">{order.paymentMethod === "qr" ? "QR Code" : "Stripe (Card)"}</span>
+                                        Method: <span className="text-white">{paymentMethodLabel(order.paymentMethod)}</span>
                                     </p>
                                     {order.paymentMethod === "qr" ? (
                                         <p className="text-sm text-gray-400">
                                             Transaction ID (UTR): <span className="text-white font-mono">{order.transactionId || "Not submitted yet"}</span>
+                                        </p>
+                                    ) : order.paymentMethod === "razorpay" ? (
+                                        <p className="text-sm text-gray-400 break-all">
+                                            Razorpay Payment: <span className="text-white font-mono text-xs">{order.transactionId || order.stripeSessionId || "N/A"}</span>
                                         </p>
                                     ) : (
                                         <p className="text-sm text-gray-400 break-all">

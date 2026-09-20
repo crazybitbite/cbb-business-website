@@ -64,14 +64,16 @@ async function getBlockingIntervals(
     const bookings = await prisma.booking.findMany({
         where: {
             startsAt: { gte: new Date(dayStart.getTime() - 4 * 3600_000), lt: dayEnd },
-            status: { in: ["CONFIRMED", "PENDING"] },
+            status: { in: ["CONFIRMED", "VERIFYING", "PENDING"] },
         },
         select: { startsAt: true, durationMin: true, status: true, createdAt: true },
     })
 
     const intervals: { start: number; end: number }[] = []
     for (const b of bookings) {
-        if (b.status === "PENDING" && Number(b.createdAt) < holdCutoffSec) continue // release abandoned holds
+        // CONFIRMED and VERIFYING (QR, awaiting admin approval) always hold the
+        // slot; only an unpaid PENDING hold is released after the timeout.
+        if (b.status === "PENDING" && Number(b.createdAt) < holdCutoffSec) continue
         const start = b.startsAt.getTime()
         intervals.push({ start, end: start + b.durationMin * 60_000 })
     }

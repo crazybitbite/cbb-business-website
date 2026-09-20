@@ -32,10 +32,12 @@ export async function POST(req: Request) {
             }),
         ])
 
+        // Keep raw values — defaultPaymentMethod may be a JSON array (new format)
+        // or a legacy string; both are handled by normalizeMethods downstream.
         const settings = settingsRows.reduce((acc, row) => {
-            acc[row.key] = typeof row.value === "string" ? row.value : ""
+            acc[row.key] = row.value
             return acc
-        }, {} as Record<string, string>)
+        }, {} as Record<string, any>)
 
         const { methods, conflict } = cartPaymentMethods(
             pages.map((p) => p.paymentMethods),
@@ -43,7 +45,7 @@ export async function POST(req: Request) {
         )
 
         // QR is only usable when a QR image is configured
-        const qrConfigured = !!settings.paymentQrCode
+        const qrConfigured = typeof settings.paymentQrCode === "string" && !!settings.paymentQrCode
         let effectiveMethods = methods.filter((m) => m !== "qr" || qrConfigured)
         if (!conflict && effectiveMethods.length === 0) {
             // QR-only cart but no QR uploaded — fall back to Stripe so checkout isn't dead
@@ -75,7 +77,7 @@ export async function POST(req: Request) {
             notes,
             pricing,
             qrCode: !conflict && effectiveMethods.includes("qr") ? settings.paymentQrCode : null,
-            contactEmail: settings.contactEmail || null,
+            contactEmail: typeof settings.contactEmail === "string" ? settings.contactEmail : null,
         })
     } catch (error) {
         console.error("Checkout info failed:", error)

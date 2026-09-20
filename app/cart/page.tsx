@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { useCartStore } from "@/lib/store"
 import { useSiteSettings } from "@/components/SiteSettingsProvider"
 import { convertPrice, formatPrice } from "@/lib/currency"
+import { openRazorpay } from "@/lib/razorpayClient"
 
 interface CheckoutNote {
     pageId: number
@@ -24,8 +25,10 @@ interface LivePricing {
     currency: string
 }
 
+type CartMethod = "stripe" | "razorpay" | "qr"
+
 interface CheckoutInfo {
-    methods: ("stripe" | "qr")[]
+    methods: CartMethod[]
     conflict: boolean
     notes: CheckoutNote[]
     pricing: LivePricing[]
@@ -46,7 +49,7 @@ export default function CartPage() {
     const router = useRouter()
     const [isCheckingOut, setIsCheckingOut] = useState(false)
     const [info, setInfo] = useState<CheckoutInfo | null>(null)
-    const [method, setMethod] = useState<"stripe" | "qr">("stripe")
+    const [method, setMethod] = useState<CartMethod>("stripe")
     const [acceptedNotes, setAcceptedNotes] = useState<Record<number, boolean>>({})
     const [qrPayment, setQrPayment] = useState<QrPayment | null>(null)
     const [transactionId, setTransactionId] = useState("")
@@ -137,8 +140,37 @@ export default function CartPage() {
                 })
                 const data = await res.json()
                 if (res.ok && data.url) {
-                    // Cart is cleared on the order success page, so it survives a cancelled payment
+                    // Stripe: hosted checkout. Cart is cleared on the order success
+                    // page, so it survives a cancelled payment.
                     window.location.href = data.url
+                } else if (res.ok && data.razorpay) {
+                    // Razorpay: open the checkout widget, then verify server-side.
+                    const rp = data.razorpay
+                    try {
+                        const result = await openRazorpay({
+                            keyId: rp.keyId,
+                            amount: rp.amount,
+                            currency: rp.currency,
+                            orderId: rp.orderId,
+                            name: rp.name,
+                            description: rp.description,
+                            prefill: rp.prefill,
+                        })
+                        const verify = await fetch("/api/checkout/razorpay/verify", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ...result, localOrderId: rp.localOrderId }),
+                        })
+                        const vData = await verify.json()
+                        if (verify.ok && vData.ok) {
+                            router.push(`/orders/${vData.orderId}?success=1`)
+                        } else {
+                            alert(vData.error || "Payment could not be verified. Please contact support.")
+                        }
+                    } catch (e: any) {
+                        // User dismissed or payment failed — nothing to confirm.
+                        if (e?.message && e.message !== "Payment cancelled.") alert(e.message)
+                    }
                 } else {
                     alert(data.error || "Checkout failed. Please try again.")
                 }
@@ -327,8 +359,8 @@ export default function CartPage() {
                                     <p className="text-sm font-medium text-gray-300">Pay with</p>
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
-                                            onClick={() => setMethod("stripe")}
-                                            className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${method === "stripe" ? "border-orange-500 bg-orange-500/10 text-white" : "border-white/10 text-gray-400 hover:bg-white/5"}`}
+                                            onClick={() => setMethod((info?.methods.find((m) => m !== "qr") ?? "stripe") as CartMethod)}
+                                            className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${method !== "qr" ? "border-orange-500 bg-orange-500/10 text-white" : "border-white/10 text-gray-400 hover:bg-white/5"}`}
                                         >
                                             <CreditCard className="h-4 w-4" /> Card
                                         </button>
@@ -344,7 +376,7 @@ export default function CartPage() {
                             {!info?.conflict && info?.methods.length === 1 && (
                                 <p className="text-xs text-gray-500 flex items-center gap-1">
                                     {info.methods[0] === "qr" ? <QrCode className="h-3.5 w-3.5" /> : <CreditCard className="h-3.5 w-3.5" />}
-                                    Payment via {info.methods[0] === "qr" ? "QR code" : "card (Stripe)"}
+                                    Payment via {info.methods[0] === "qr" ? "QR code" : "card"}
                                 </p>
                             )}
 

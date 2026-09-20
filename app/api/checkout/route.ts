@@ -2,9 +2,11 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { getStripe } from "@/lib/stripe"
+import { getRazorpay } from "@/lib/razorpay"
 import { getCurrencyRates } from "@/lib/currencyRates"
 import { convertPrice, CURRENCY_CODES, ZERO_DECIMAL_CURRENCIES } from "@/lib/currency"
 import { effectivePrice } from "@/lib/pricing"
+import { cartPaymentMethods, onlineGateway } from "@/lib/paymentMethods"
 
 export async function POST(req: Request) {
     try {
@@ -13,14 +15,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Please sign in to checkout" }, { status: 401 })
         }
         const userId = parseInt(session.user.id)
-
-        const stripe = await getStripe()
-        if (!stripe) {
-            return NextResponse.json(
-                { error: "Payments are not configured yet. Please add Stripe keys in admin settings." },
-                { status: 400 }
-            )
-        }
 
         const json = await req.json()
         const requestedItems: { id: number; quantity: number }[] = json.items || []
@@ -76,12 +70,34 @@ export async function POST(req: Request) {
 
         const total = lineItems.reduce((sum, li) => sum + li.unitPrice * li.quantity, 0)
 
+        // Resolve which online gateway applies to this cart (page overrides →
+        // settings default), enforcing the one-online-gateway rule.
+        const defaultRow = await prisma.settings.findUnique({ where: { key: "defaultPaymentMethod" } })
+        const { methods: resolvedMethods, conflict } = cartPaymentMethods(
+            pages.map((p) => p.paymentMethods),
+            defaultRow?.value
+        )
+        if (conflict) {
+            return NextResponse.json(
+                { error: "These items support different payment methods and can't be purchased together." },
+                { status: 400 }
+            )
+        }
+        const gateway = onlineGateway(resolvedMethods)
+        if (!gateway) {
+            return NextResponse.json(
+                { error: "Online card payment isn't available for these items." },
+                { status: 400 }
+            )
+        }
+
         const order = await prisma.order.create({
             data: {
                 userId,
                 status: "PENDING",
                 total: Math.round(total * 100) / 100,
                 currency: checkoutCurrency,
+                paymentMethod: gateway,
                 items: {
                     create: lineItems.map((li) => ({
                         pageId: li.pageId,
@@ -94,6 +110,46 @@ export async function POST(req: Request) {
 
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || new URL(req.url).origin
         const isZeroDecimal = ZERO_DECIMAL_CURRENCIES.has(checkoutCurrency)
+        const subunit = (amount: number) => Math.round(amount * (isZeroDecimal ? 1 : 100))
+
+        // ---- Razorpay ----
+        if (gateway === "razorpay") {
+            const rzp = await getRazorpay()
+            if (!rzp) {
+                return NextResponse.json(
+                    { error: "Payments are not configured yet. Please add Razorpay keys in admin settings." },
+                    { status: 400 }
+                )
+            }
+            const rzpOrder = await rzp.client.orders.create({
+                amount: subunit(order.total),
+                currency: checkoutCurrency,
+                receipt: `order_${order.id}`,
+                notes: { orderId: order.id.toString() },
+            })
+            await prisma.order.update({ where: { id: order.id }, data: { stripeSessionId: rzpOrder.id } })
+            return NextResponse.json({
+                razorpay: {
+                    keyId: rzp.keyId,
+                    amount: rzpOrder.amount,
+                    currency: rzpOrder.currency,
+                    orderId: rzpOrder.id,
+                    localOrderId: order.id,
+                    name: "CrazyBitBite",
+                    description: lineItems.map((li) => li.name).join(", ").slice(0, 250),
+                    prefill: { name: session.user.name || undefined, email: session.user.email || undefined },
+                },
+            })
+        }
+
+        // ---- Stripe (default) ----
+        const stripe = await getStripe()
+        if (!stripe) {
+            return NextResponse.json(
+                { error: "Payments are not configured yet. Please add Stripe keys in admin settings." },
+                { status: 400 }
+            )
+        }
 
         const stripeSession = await stripe.checkout.sessions.create({
             mode: "payment",
@@ -102,7 +158,7 @@ export async function POST(req: Request) {
                 price_data: {
                     currency: checkoutCurrency.toLowerCase(),
                     product_data: { name: li.name },
-                    unit_amount: Math.round(li.unitPrice * (isZeroDecimal ? 1 : 100)),
+                    unit_amount: subunit(li.unitPrice),
                 },
                 quantity: li.quantity,
             })),

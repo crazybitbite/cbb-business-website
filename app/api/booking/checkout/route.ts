@@ -2,26 +2,30 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { getStripe } from "@/lib/stripe"
+import { getRazorpay } from "@/lib/razorpay"
+import { getCalendarConfig, getConsultationPaymentMethods } from "@/lib/serverConfig"
+import { onlineGateway } from "@/lib/paymentMethods"
 import { BOOKING_CURRENCY, priceForDuration, zonedToUtc } from "@/lib/booking"
 import { isSlotAvailable } from "@/lib/bookingAvailability"
-import { getCalendarConfig } from "@/lib/serverConfig"
 
 export const dynamic = "force-dynamic"
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /**
- * Create a consultation booking and start a Stripe Checkout session.
- * Price is always resolved server-side from the duration map. If the visitor
- * is signed in the booking is linked to their account; otherwise a user is
- * found-or-created by email so the order (and later the invite) has an owner.
+ * Create a consultation booking and start card payment via the online gateway
+ * enabled for consultations (Stripe hosted checkout, or a Razorpay order for
+ * the widget). Price is always resolved server-side from the duration map.
+ * If the visitor is signed in the booking is linked to their account; otherwise
+ * a user is found-or-created by email so the order/invite has an owner.
+ * (QR bookings go through /api/booking/qr instead.)
  */
 export async function POST(req: Request) {
     try {
-        const stripe = await getStripe()
-        if (!stripe) {
+        const gateway = onlineGateway(await getConsultationPaymentMethods())
+        if (!gateway) {
             return NextResponse.json(
-                { error: "Payments are not configured yet. Please add Stripe keys in admin settings." },
+                { error: "Online card payment isn't available for consultations." },
                 { status: 400 }
             )
         }
@@ -83,13 +87,14 @@ export async function POST(req: Request) {
 
         const label = `Consultation — ${durationMin} min`
 
-        // Order (PENDING until Stripe confirms) with a single labelled line item.
+        // Order (PENDING until the gateway confirms) with a single labelled item.
         const order = await prisma.order.create({
             data: {
                 userId,
                 status: "PENDING",
                 total: price,
                 currency: BOOKING_CURRENCY,
+                paymentMethod: gateway,
                 items: { create: [{ title: label, quantity: 1, price }] },
             },
         })
@@ -112,6 +117,50 @@ export async function POST(req: Request) {
         })
 
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || new URL(req.url).origin
+        const amountSubunit = Math.round(price * 100) // INR → paise
+
+        // ---- Razorpay ----
+        if (gateway === "razorpay") {
+            const rzp = await getRazorpay()
+            if (!rzp) {
+                return NextResponse.json(
+                    { error: "Payments are not configured yet. Please add Razorpay keys in admin settings." },
+                    { status: 400 }
+                )
+            }
+            const rzpOrder = await rzp.client.orders.create({
+                amount: amountSubunit,
+                currency: BOOKING_CURRENCY,
+                receipt: `booking_${booking.id}`,
+                notes: { bookingId: booking.id.toString(), orderId: order.id.toString() },
+            })
+            await prisma.$transaction([
+                prisma.order.update({ where: { id: order.id }, data: { stripeSessionId: rzpOrder.id } }),
+                prisma.booking.update({ where: { id: booking.id }, data: { stripeSessionId: rzpOrder.id } }),
+            ])
+            return NextResponse.json({
+                razorpay: {
+                    keyId: rzp.keyId,
+                    amount: rzpOrder.amount,
+                    currency: rzpOrder.currency,
+                    orderId: rzpOrder.id,
+                    bookingId: booking.id,
+                    localOrderId: order.id,
+                    name: "CrazyBitBite",
+                    description: `${label} · ${date} at ${time}`,
+                    prefill: { name: `${firstName} ${lastName}`.trim(), email, contact: phone },
+                },
+            })
+        }
+
+        // ---- Stripe (default) ----
+        const stripe = await getStripe()
+        if (!stripe) {
+            return NextResponse.json(
+                { error: "Payments are not configured yet. Please add Stripe keys in admin settings." },
+                { status: 400 }
+            )
+        }
 
         const stripeSession = await stripe.checkout.sessions.create({
             mode: "payment",
@@ -124,7 +173,7 @@ export async function POST(req: Request) {
                             name: label,
                             description: `${date} at ${time} (${timeZone})`,
                         },
-                        unit_amount: Math.round(price * 100),
+                        unit_amount: amountSubunit,
                     },
                     quantity: 1,
                 },

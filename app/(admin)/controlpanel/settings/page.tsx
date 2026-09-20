@@ -7,6 +7,8 @@ import { SideContentEditor } from "@/components/admin/SideContentEditor"
 import { EMPTY_SIDE_CONTENT, normalizeSideContent, type SideContent } from "@/lib/sideContent"
 import { ConsultationEditor } from "@/components/admin/ConsultationEditor"
 import type { ConsultationHours, PauseWindow } from "@/lib/booking"
+import { PaymentMethodsSelect } from "@/components/admin/PaymentMethodsSelect"
+import { normalizeMethods, type PaymentMethod } from "@/lib/paymentMethods"
 
 const EMPTY_SETTINGS = {
     siteName: "",
@@ -22,7 +24,8 @@ const EMPTY_SETTINGS = {
     stripePublishableKey: "",
     stripeSecretKey: "",
     stripeWebhookSecret: "",
-    defaultPaymentMethod: "stripe",
+    razorpayKeyId: "",
+    razorpayKeySecret: "",
     paymentQrCode: "",
     defaultSeoTitle: "",
     defaultSeoDescription: "",
@@ -61,6 +64,8 @@ export default function AdminSettings() {
     const [sideContent, setSideContent] = useState<SideContent>(EMPTY_SIDE_CONTENT)
     const [consultationHours, setConsultationHours] = useState<ConsultationHours>({})
     const [consultationPauses, setConsultationPauses] = useState<PauseWindow[]>([])
+    const [defaultPayMethods, setDefaultPayMethods] = useState<PaymentMethod[]>(["stripe"])
+    const [consultationPayMethods, setConsultationPayMethods] = useState<PaymentMethod[]>(["stripe"])
 
     useEffect(() => {
         fetchSettings()
@@ -87,6 +92,8 @@ export default function AdminSettings() {
                 if (Array.isArray(data.consultationPauses)) {
                     setConsultationPauses(data.consultationPauses)
                 }
+                setDefaultPayMethods(normalizeMethods(data.defaultPaymentMethod) ?? ["stripe"])
+                setConsultationPayMethods(normalizeMethods(data.consultationPaymentMethods) ?? ["stripe"])
             }
         } catch (error) {
             console.error("Failed to fetch settings:", error)
@@ -114,7 +121,14 @@ export default function AdminSettings() {
             const res = await fetch("/api/settings", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...settings, sideContent, consultationHours, consultationPauses }),
+                body: JSON.stringify({
+                    ...settings,
+                    sideContent,
+                    consultationHours,
+                    consultationPauses,
+                    defaultPaymentMethod: defaultPayMethods,
+                    consultationPaymentMethods: consultationPayMethods,
+                }),
             })
 
             if (!res.ok) throw new Error("Failed to save settings")
@@ -137,6 +151,11 @@ export default function AdminSettings() {
     }
 
     const inputClass = "w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
+
+    // A gateway is "in use" if selected as a method anywhere (cart default or consultations).
+    const selectedMethods = [...defaultPayMethods, ...consultationPayMethods]
+    const usesStripe = selectedMethods.includes("stripe")
+    const usesRazorpay = selectedMethods.includes("razorpay")
 
     return (
         <div className="space-y-6">
@@ -243,19 +262,15 @@ export default function AdminSettings() {
                 {/* Payments */}
                 <div className="rounded-xl border border-white/10 bg-black/40 p-6 space-y-6">
                     <h2 className="text-xl font-semibold text-white">Payments</h2>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-300">Default Payment Method</label>
-                            <p className="text-xs text-gray-500">Used at checkout for pages that don&apos;t choose their own payment method.</p>
-                            <select
-                                value={settings.defaultPaymentMethod}
-                                onChange={(e) => setSettings({ ...settings, defaultPaymentMethod: e.target.value })}
-                                className={`${inputClass} [&>option]:bg-gray-900`}
-                            >
-                                <option value="stripe">Stripe (Card)</option>
-                                <option value="qr">QR Code</option>
-                                <option value="both">Both (QR + Stripe)</option>
-                            </select>
+                            <p className="text-xs text-gray-500">
+                                Methods offered at checkout for pages that don&apos;t choose their own. Stripe and
+                                Razorpay can&apos;t both be selected — pick one online gateway (optionally with QR).
+                            </p>
+                            <PaymentMethodsSelect value={defaultPayMethods} onChange={setDefaultPayMethods} />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-300">Payment QR Code</label>
@@ -292,37 +307,54 @@ export default function AdminSettings() {
                             )}
                         </div>
                     </div>
-                    <p className="text-xs text-gray-500">Stripe keys — from your Stripe dashboard → Developers → API keys.</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300">Publishable Key</label>
-                            <input
-                                type="text"
-                                placeholder="pk_live_..."
-                                value={settings.stripePublishableKey}
-                                onChange={(e) => setSettings({ ...settings, stripePublishableKey: e.target.value })}
-                                className={inputClass}
-                            />
+                    {/* Stripe keys */}
+                    <div className={`rounded-lg border p-4 space-y-4 ${usesStripe ? "border-orange-500/40 bg-orange-500/5" : "border-white/10"}`}>
+                        <p className="text-sm font-medium text-white flex items-center gap-2">
+                            Stripe
+                            {usesStripe && (
+                                <span className="text-[10px] uppercase tracking-wide rounded-full bg-orange-500/20 text-orange-300 px-2 py-0.5">In use</span>
+                            )}
+                        </p>
+                        <p className="text-xs text-gray-500">From your Stripe dashboard → Developers → API keys.</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">Publishable Key</label>
+                                <input type="text" placeholder="pk_live_..." value={settings.stripePublishableKey}
+                                    onChange={(e) => setSettings({ ...settings, stripePublishableKey: e.target.value })} className={inputClass} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">Secret Key</label>
+                                <input type="password" placeholder="sk_live_..." value={settings.stripeSecretKey}
+                                    onChange={(e) => setSettings({ ...settings, stripeSecretKey: e.target.value })} className={inputClass} />
+                            </div>
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-sm font-medium text-gray-300">Webhook Signing Secret</label>
+                                <input type="password" placeholder="whsec_..." value={settings.stripeWebhookSecret}
+                                    onChange={(e) => setSettings({ ...settings, stripeWebhookSecret: e.target.value })} className={inputClass} />
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300">Secret Key</label>
-                            <input
-                                type="password"
-                                placeholder="sk_live_..."
-                                value={settings.stripeSecretKey}
-                                onChange={(e) => setSettings({ ...settings, stripeSecretKey: e.target.value })}
-                                className={inputClass}
-                            />
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm font-medium text-gray-300">Webhook Signing Secret</label>
-                            <input
-                                type="password"
-                                placeholder="whsec_..."
-                                value={settings.stripeWebhookSecret}
-                                onChange={(e) => setSettings({ ...settings, stripeWebhookSecret: e.target.value })}
-                                className={inputClass}
-                            />
+                    </div>
+
+                    {/* Razorpay keys */}
+                    <div className={`rounded-lg border p-4 space-y-4 ${usesRazorpay ? "border-orange-500/40 bg-orange-500/5" : "border-white/10"}`}>
+                        <p className="text-sm font-medium text-white flex items-center gap-2">
+                            Razorpay
+                            {usesRazorpay && (
+                                <span className="text-[10px] uppercase tracking-wide rounded-full bg-orange-500/20 text-orange-300 px-2 py-0.5">In use</span>
+                            )}
+                        </p>
+                        <p className="text-xs text-gray-500">From your Razorpay dashboard → Account &amp; Settings → API Keys.</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">Key ID</label>
+                                <input type="text" autoComplete="off" placeholder="rzp_live_..." value={settings.razorpayKeyId}
+                                    onChange={(e) => setSettings({ ...settings, razorpayKeyId: e.target.value })} className={inputClass} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">Key Secret</label>
+                                <input type="password" autoComplete="new-password" value={settings.razorpayKeySecret}
+                                    onChange={(e) => setSettings({ ...settings, razorpayKeySecret: e.target.value })} className={inputClass} />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -375,6 +407,17 @@ export default function AdminSettings() {
                 {/* Consultation Booking */}
                 <div className="rounded-xl border border-white/10 bg-black/40 p-6 space-y-6">
                     <h2 className="text-xl font-semibold text-white">Consultation Booking</h2>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-300">Default Payment Method</label>
+                        <p className="text-xs text-gray-500">
+                            How visitors pay for consultations. Stripe and Razorpay can&apos;t both be selected — pick
+                            one online gateway (optionally with QR). QR bookings are confirmed after you verify the
+                            transaction id.
+                        </p>
+                        <PaymentMethodsSelect value={consultationPayMethods} onChange={setConsultationPayMethods} />
+                    </div>
+
                     <ConsultationEditor
                         hours={consultationHours}
                         pauses={consultationPauses}
