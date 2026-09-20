@@ -10,6 +10,7 @@ import { useCartStore } from "@/lib/store"
 import { useSiteSettings } from "@/components/SiteSettingsProvider"
 import { convertPrice, formatPrice } from "@/lib/currency"
 import { openRazorpay } from "@/lib/razorpayClient"
+import { paymentMethodLabel } from "@/lib/paymentMethods"
 
 interface CheckoutNote {
     pageId: number
@@ -376,7 +377,7 @@ export default function CartPage() {
                             {!info?.conflict && info?.methods.length === 1 && (
                                 <p className="text-xs text-gray-500 flex items-center gap-1">
                                     {info.methods[0] === "qr" ? <QrCode className="h-3.5 w-3.5" /> : <CreditCard className="h-3.5 w-3.5" />}
-                                    Payment via {info.methods[0] === "qr" ? "QR code" : "card"}
+                                    Payment via {info.methods[0] === "qr" ? "QR code" : paymentMethodLabel(info.methods[0])}
                                 </p>
                             )}
 
