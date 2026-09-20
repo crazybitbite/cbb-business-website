@@ -5,6 +5,7 @@ import { getCurrencyRates } from "@/lib/currencyRates"
 import { convertPrice, CURRENCY_CODES } from "@/lib/currency"
 import { effectivePrice } from "@/lib/pricing"
 import { isValidTransactionId } from "@/lib/paymentMethods"
+import { sendOrderQrNotification } from "@/lib/orderEmail"
 
 /**
  * QR checkout, single-shot: the buyer has already scanned and paid, and now
@@ -97,6 +98,20 @@ export async function POST(req: Request) {
                 items: { create: orderItems },
             },
         })
+
+        // Notify the admin (SMTP From address) to verify the payment. Best-effort.
+        sendOrderQrNotification({
+            orderId: order.id,
+            transactionId,
+            total: order.total,
+            currency: checkoutCurrency,
+            buyerName: session.user.name,
+            buyerEmail: session.user.email,
+            items: orderItems.map((oi) => ({
+                name: pages.find((p) => p.id === oi.pageId)?.name || `Item #${oi.pageId}`,
+                quantity: oi.quantity,
+            })),
+        }).catch((e) => console.error("Order QR notification email failed:", e))
 
         return NextResponse.json({ ok: true, orderId: order.id, verifying: true })
     } catch (error) {
