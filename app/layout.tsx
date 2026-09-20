@@ -21,6 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 import { Providers } from "@/components/providers";
+import { BookConsultationModal } from "@/components/BookConsultationModal";
 
 import { getNavigation } from "@/lib/navigation";
 
@@ -55,6 +56,7 @@ export default async function RootLayout({
               </GlobalRailsWrapper>
             </main>
             <Footer initialNavigation={footerNav} />
+            <BookConsultationModal />
           </ThemeProvider>
         </Providers>
       </body>

@@ -109,7 +109,7 @@ export default async function OrderDetailPage({
                                         </div>
                                         <div>
                                             <p className="font-medium text-white">
-                                                {item.page?.name || "Unknown Item"}
+                                                {item.page?.name || item.title || "Unknown Item"}
                                             </p>
                                             <p className="text-sm text-gray-400">Qty: {item.quantity}</p>
                                         </div>

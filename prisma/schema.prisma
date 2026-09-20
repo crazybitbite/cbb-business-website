@@ -27,6 +27,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   orders        Order[]
+  bookings      Booking[]
   userSubscription UserSubscription?
   blogPosts     BlogPost[]
 }
@@ -149,6 +150,32 @@ model Order {
   createdAt     BigInt      @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
   updatedAt     BigInt?     @db.BigInt
   items         OrderItem[]
+  booking       Booking?
+}
+
+// A paid consultation booking. Linked to an Order (created COMPLETED on
+// successful Stripe payment) and, once paid, to a Google Calendar event.
+model Booking {
+  id              Int      @id @default(autoincrement())
+  userId          Int?
+  user            User?    @relation(fields: [userId], references: [id])
+  orderId         Int?     @unique
+  order           Order?   @relation(fields: [orderId], references: [id])
+  firstName       String
+  lastName        String
+  email           String
+  phone           String
+  startsAt        DateTime
+  timeZone        String   @default("Asia/Kolkata")
+  durationMin     Int
+  price           Float
+  currency        String   @default("INR")
+  status          String   @default("PENDING")
+  stripeSessionId String?
+  googleEventId   String?
+  meetingLink     String?
+  createdAt       BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM now())::bigint)"))
+  updatedAt       BigInt?  @db.BigInt
 }
 
 // Admin notes on an order. "visible" ones are shown to the purchaser with
@@ -169,6 +196,8 @@ model OrderItem {
   order     Order    @relation(fields: [orderId], references: [id])
   pageId    Int?
   page      Page?    @relation(fields: [pageId], references: [id])
+  // Display label for items with no page (e.g. consultation bookings)
+  title     String?
   // Service relation removed
   quantity  Int
   price     Float
