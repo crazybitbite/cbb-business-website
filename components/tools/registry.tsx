@@ -59,4 +59,5 @@ export const TOOL_COMPONENTS: Record<string, ComponentType> = {
     "markdown-previewer": dynamic(() => import("./MarkdownPreviewer")),
     "slug-generator": dynamic(() => import("./SlugGenerator")),
     "cron-parser": dynamic(() => import("./CronParser")),
+    "name-number": dynamic(() => import("./NameNumber")),
 }

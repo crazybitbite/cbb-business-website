@@ -47,6 +47,7 @@ export const TOOLS: ToolMeta[] = [
     { key: "markdown-previewer", label: "Markdown Previewer", description: "Write markdown and see it rendered live" },
     { key: "slug-generator", label: "Slug Generator", description: "Turn any title into a clean URL slug" },
     { key: "cron-parser", label: "Cron Expression Parser", description: "Explain and validate a cron schedule in plain English" },
+    { key: "name-number", label: "Name Number Calculator", description: "Sum a name's letter positions and reduce it to a single-digit total" },
 ]
 
 export const toolByKey = (key: string | null | undefined): ToolMeta | undefined =>
